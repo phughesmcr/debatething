@@ -2,6 +2,7 @@ import { useState, useEffect } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
 import { validateDebateInput } from "../lib/inputValidation.ts";
+import { sanitizeInput } from "../lib/inputSanitizer.ts";
 
 interface AgentDetails {
   name: string;
@@ -40,11 +41,13 @@ export default function DebateForm() {
     setErrors([]);
 
     const input = {
-      position,
+      position: sanitizeInput(position),
       numAgents: clamp(numAgents, 2, 4),
-      agentDetails
+      agentDetails: agentDetails.map(agent => ({
+        name: sanitizeInput(agent.name),
+        personality: sanitizeInput(agent.personality)
+      }))
     };
-
     const validationResult = validateDebateInput(input);
 
     if (!validationResult.valid) {
@@ -123,8 +126,9 @@ export default function DebateForm() {
             type="text"
             value={position}
             aria-label="Position to debate"
-            onInput={(e) => setPosition((e.target as HTMLInputElement).value)}
+            onInput={(e) => setPosition(sanitizeInput((e.target as HTMLInputElement).value))}
             class="w-full p-2 border rounded"
+            maxLength={280}
             required
           />
         </div>
@@ -136,7 +140,7 @@ export default function DebateForm() {
             min="2"
             max="4"
             value={numAgents}
-            onInput={(e) => setNumAgents(parseInt((e.target as HTMLInputElement).value))}
+            onInput={(e) => setNumAgents(parseInt(sanitizeInput((e.target as HTMLInputElement).value)))}
             class="w-full p-2 border rounded"
             aria-label="Number of AI agents"
             required
@@ -152,8 +156,9 @@ export default function DebateForm() {
                 id={`agent-name-${index}`}
                 type="text"
                 value={agent.name}
-                onInput={(e) => handleAgentDetailChange(index, "name", (e.target as HTMLInputElement).value)}
+                onInput={(e) => handleAgentDetailChange(index, "name", sanitizeInput((e.target as HTMLInputElement).value))}
                 class="w-full p-2 border rounded"
+                maxLength={50}
                 required
               />
             </div>
@@ -164,6 +169,7 @@ export default function DebateForm() {
                 value={agent.personality}
                 onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
                 class="w-full p-2 border rounded"
+                maxLength={120}
                 required
               />
             </div>
