@@ -38,6 +38,9 @@ export default function DebateForm() {
   const synthesisQueueRef = useRef<number[]>([]);
   const isSynthesizingRef = useRef(false);
   const preloadedIndicesRef = useRef<Set<number>>(new Set());
+  const [isDebateAudioLoading, setIsDebateAudioLoading] = useState(false);
+  const [allAudiosSynthesized, setAllAudiosSynthesized] = useState(false);
+  const [isPreloadingAudios, setIsPreloadingAudios] = useState(false);
 
   useEffect(() => {
     // Generate a new UUID for each session
@@ -272,6 +275,7 @@ export default function DebateForm() {
       console.log("Starting or resuming debate playback");
       isFullDebatePlayingRef.current = true;
       setIsFullDebatePlaying(true);
+      setIsDebateAudioLoading(true);
       
       let startIndex = lastPlayedIndex;
       let startPosition = lastPlayedPosition;
@@ -282,7 +286,7 @@ export default function DebateForm() {
       }
 
       if (startIndex !== -1) {
-        await ensureNextAudiosReady(startIndex, 3); // Preload first 3 audios
+        await ensureNextAudiosReady(startIndex, 2);
         await resumePlayback(startIndex, startPosition);
       } else {
         console.log("No playable messages found in the debate");
@@ -309,12 +313,15 @@ export default function DebateForm() {
       if (audio) {
         audio.currentTime = position;
         currentAudioRef.current = audio;
+        setIsDebateAudioLoading(false);  // Audio is ready to play
         playNextInQueue(index);
       } else {
         console.error(`Audio not found for index: ${index}`);
+        setIsDebateAudioLoading(false);  // Reset loading state even if there's an error
         playNextInQueue(getNextPlayableIndex(index) ?? 0);
       }
     } else {
+      setIsDebateAudioLoading(false);  // Reset loading state for non-agent messages
       playNextInQueue(getNextPlayableIndex(index) ?? 0);
     }
   };
@@ -401,8 +408,7 @@ export default function DebateForm() {
           if (!audioRefs.current[index] && !synthesizedAudios.has(index)) {
             await synthesizeAudio(index);
           }
-        } catch (error) {
-          console.error(`Error synthesizing audio for index ${index}:`, error);
+        } catch (error) {          console.error(`Error synthesizing audio for index ${index}:`, error);
         } finally {
           synthesisQueueRef.current.shift();
         }
@@ -448,7 +454,13 @@ export default function DebateForm() {
       console.log(`Creating new Audio object for index: ${index}`);
       const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
       audioRefs.current[index] = audio;
-      setSynthesizedAudios(prev => new Set(prev).add(index));
+      setSynthesizedAudios(prev => {
+        const newSet = new Set(prev).add(index);
+        if (newSet.size === debate.filter((_, index) => isAgentMessage(index)).length) {
+          setAllAudiosSynthesized(true);
+        }
+        return newSet;
+      });
     } catch (error) {
       console.error(`Error in synthesizeAudio for index ${index}:`, error);
       throw error;
@@ -522,6 +534,49 @@ export default function DebateForm() {
     } finally {
       setVoiceSynthLoading(prev => ({ ...prev, [index]: false }));
     }
+  };
+
+  const generateDownloadLinks = async () => {
+    if (!allAudiosSynthesized) {
+      setIsPreloadingAudios(true);
+      try {
+        const synthPromises = debate.map((message, index) => {
+          if (isAgentMessage(index) && !audioRefs.current[index]) {
+            return synthesizeAudio(index);
+          }
+          return Promise.resolve();
+        });
+        await Promise.all(synthPromises);
+      } finally {
+        setIsPreloadingAudios(false);
+      }
+    }
+
+    debate.forEach((message, index) => {
+      if (isAgentMessage(index) && audioRefs.current[index]) {
+        const audio = audioRefs.current[index];
+        const blob = dataURItoBlob(audio.src);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `debate_audio_${index}.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
+
+  const dataURItoBlob = (dataURI: string) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
   };
 
   return (
@@ -671,13 +726,35 @@ export default function DebateForm() {
             <button
               type="button"
               onClick={handleFullDebatePlayback}
-              class="px-4 py-2 bg-green-500 text-white rounded"
+              class={`px-4 py-2 ${isDebateAudioLoading ? 'bg-yellow-500' : isFullDebatePlaying ? 'bg-red-500' : 'bg-green-500'} text-white rounded flex items-center justify-center`}
+              disabled={isDebateAudioLoading}
             >
-              {isFullDebatePlaying 
+              {isDebateAudioLoading ? (
+                <>
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading...
+                </>
+              ) : isFullDebatePlaying 
                 ? "Pause Debate" 
                 : lastPlayedIndex !== null 
                   ? "Resume Debate" 
                   : "Listen to Debate"}
+            </button>
+          )}
+          {isDebateFinished && (
+            <button
+              onClick={generateDownloadLinks}
+              class="px-4 py-2 bg-purple-500 text-white rounded disabled:opacity-50"
+              disabled={isPreloadingAudios}
+            >
+              {isPreloadingAudios 
+                ? "Preparing Audios..." 
+                : allAudiosSynthesized 
+                  ? "Download All Audios" 
+                  : "Prepare and Download All Audios"}
             </button>
           )}
         </div>
@@ -703,6 +780,7 @@ export default function DebateForm() {
               )}
             </div>
           ))}
+          
         </div>
       )}
     </div>
