@@ -7,6 +7,10 @@ const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.2;
 const DEBATE_ROUNDS = 2;
 
+// Add new constants for error handling
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 interface AgentDetails {
   name: string;
   personality: string;
@@ -49,96 +53,110 @@ const trimAgentPrefix = (content: string, agentName: string): string => {
   return content;
 };
 
+async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder, agentName: string) {
+  let retries = 0;
+  while (retries < MAX_RETRIES) {
+    try {
+      const response = await agent?.chat.completions.create({
+        model: MODEL,
+        messages,
+        max_tokens: MAX_TOKENS,
+        temperature: TEMPERATURE,
+        stream: true,
+      });
+
+      if (!response) throw new Error("No response from OpenAI");
+
+      let fullContent = "";
+      for await (const part of response) {
+        const content = part.choices[0]?.delta?.content || '';
+        const finishReason = part.choices[0]?.finish_reason;
+
+        if (content) {
+          fullContent += content;
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: agentName, content })}\n\n`));
+        }
+
+        if (finishReason) {
+          if (finishReason !== "stop") {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "system", content: `[Warning: Response finished due to ${finishReason}]` })}\n\n`));
+          }
+          break;
+        }
+      }
+
+      return fullContent;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Rate limit exceeded")) {
+        if (retries < MAX_RETRIES - 1) {
+          retries++;
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retries));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
 export async function conductDebateStream(position: string, numAgents: number, agentDetails: AgentDetails[]) {
-	const encoder = new TextEncoder();
-	const stream = new ReadableStream({
-		async start(controller) {
-			try {
-				const systemMessage = createSystemMessage(position, agentDetails);
-				const debateHistory: ChatCompletionMessageParam[] = [{ role: "system", content: systemMessage }];
-				
-				// Opening statements
-				for (let agentNum = 0; agentNum < numAgents; agentNum++) {
-					const currentAgent = agentDetails[agentNum];
-					const userPrompt = `You are ${currentAgent.name}. Provide your opening statement on the topic. Remember to stay in character as described in your personality.`;
-					debateHistory.push({ role: "user", content: userPrompt });
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const systemMessage = createSystemMessage(position, agentDetails);
+        const debateHistory: ChatCompletionMessageParam[] = [{ role: "system", content: systemMessage }];
+        
+        // Opening statements
+        for (let agentNum = 0; agentNum < numAgents; agentNum++) {
+          const currentAgent = agentDetails[agentNum];
+          const userPrompt = `You are ${currentAgent.name}. Provide your opening statement on the topic. Remember to stay in character as described in your personality.`;
+          debateHistory.push({ role: "user", content: userPrompt });
 
-					const messages: ChatCompletionMessageParam[] = [...debateHistory];
+          const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-					const response = await agent?.chat.completions.create({
-						model: MODEL,
-						messages,
-						max_tokens: MAX_TOKENS,
-						temperature: TEMPERATURE,
-						stream: true,
-					});
+          const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name);
 
-					if (!response) throw new Error("No response from OpenAI");
+          debateHistory.push({ role: "assistant", content: fullContent });
+          
+          const endStatement = `End of ${currentAgent.name}'s opening statement.`;
+          debateHistory.push({ role: "user", content: endStatement });
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endStatement })}\n\n`));
+        }
 
-					let fullContent = "";
-					for await (const part of response) {
-						const content = part.choices[0]?.delta?.content || '';
-						if (content) {
-							fullContent += content;
-							controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: currentAgent.name, content })}\n\n`));
-						}
-					}
+        // Debate rounds
+        for (let round = 0; round < DEBATE_ROUNDS; round++) {
+          const roundStart = `Starting debate round ${round + 1}.`;
+          debateHistory.push({ role: "user", content: roundStart });
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: roundStart })}\n\n`));
 
-					debateHistory.push({ role: "assistant", content: fullContent });
-					
-					const endStatement = `End of ${currentAgent.name}'s opening statement.`;
-					debateHistory.push({ role: "user", content: endStatement });
-					controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endStatement })}\n\n`));
-				}
+          for (let agentNum = 0; agentNum < numAgents; agentNum++) {
+            const currentAgent = agentDetails[agentNum];
+            const userPrompt = `You are ${currentAgent.name}. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character and maintain your perspective.`;
+            debateHistory.push({ role: "user", content: userPrompt });
 
-				// Debate rounds
-				for (let round = 0; round < DEBATE_ROUNDS; round++) {
-					const roundStart = `Starting debate round ${round + 1}.`;
-					debateHistory.push({ role: "user", content: roundStart });
-					controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: roundStart })}\n\n`));
+            const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-					for (let agentNum = 0; agentNum < numAgents; agentNum++) {
-						const currentAgent = agentDetails[agentNum];
-						const userPrompt = `You are ${currentAgent.name}. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character and maintain your perspective.`;
-						debateHistory.push({ role: "user", content: userPrompt });
+            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name);
 
-						const messages: ChatCompletionMessageParam[] = [...debateHistory];
+            debateHistory.push({ role: "assistant", content: fullContent });
 
-						const response = await agent?.chat.completions.create({
-							model: MODEL,
-							messages,
-							max_tokens: MAX_TOKENS,
-							temperature: TEMPERATURE,
-							stream: true,
-						});
+            const endTurn = `End of ${currentAgent.name}'s turn in round ${round + 1}.`;
+            debateHistory.push({ role: "user", content: endTurn });
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endTurn })}\n\n`));
+          }
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      } catch (error) {
+        console.error("Error in conductDebateStream:", error);
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "system", content: `Error: ${error.message}` })}\n\n`));
+        controller.error(error);
+      } finally {
+        controller.close();
+      }
+    }
+  });
 
-						if (!response) throw new Error("No response from OpenAI");
-
-						let fullContent = "";
-						for await (const part of response) {
-							const content = part.choices[0]?.delta?.content || '';
-							if (content) {
-								fullContent += content;
-								controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: currentAgent.name, content })}\n\n`));
-							}
-						}
-
-						debateHistory.push({ role: "assistant", content: fullContent });
-
-						const endTurn = `End of ${currentAgent.name}'s turn in round ${round + 1}.`;
-						debateHistory.push({ role: "user", content: endTurn });
-						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endTurn })}\n\n`));
-					}
-				}
-				controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-			} catch (error) {
-				console.error("Error in conductDebateStream:", error);
-				controller.error(error);
-			} finally {
-				controller.close();
-			}
-		}
-	});
-
-	return stream;
+  return stream;
 }
