@@ -5,10 +5,8 @@ type ChatCompletionMessageParam = OpenAI.Chat.Completions.ChatCompletionMessageP
 const MODEL = "gpt-4o-mini";
 const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.2;
-const DEBATE_ROUNDS = 2;
+const DEBATE_ROUNDS = 1;
 const CONCLUDING_STATEMENTS = true;
-
-// Add new constants for error handling
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 

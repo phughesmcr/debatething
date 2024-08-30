@@ -29,7 +29,7 @@ const SECURITY_HEADERS = {
     "Permissions-Policy":
       "accelerometer=(), camera=(), document-domain=(), encrypted-media=(), gyroscope=(), interest-cohort=(), microphone=(), magnetometer=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), sync-xhr=(), usb=(), xr-spatial-tracking=(), geolocation=()",
     "Content-Security-Policy":
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; media-src 'self' data:;",
   };
   
   function setSecurityHeaders(headers: Headers): void {
@@ -59,6 +59,11 @@ const SECURITY_HEADERS = {
     // Perform cleanup if it's been more than WINDOW_SIZE since last cleanup
     if (now - store[ip].lastCleanup >= WINDOW_SIZE) {
       cleanupStoreEntry(ip, now);
+    }
+
+    // Ensure the entry exists after cleanup
+    if (!store[ip]) {
+      store[ip] = { timestamps: [], lastCleanup: now };
     }
 
     const remaining = MAX_REQUESTS - store[ip].timestamps.length;
