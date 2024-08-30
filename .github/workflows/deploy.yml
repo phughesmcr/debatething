@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      APP_KEY: ${{ secrets.APP_KEY }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_PROJECT: ${{ secrets.OPENAI_PROJECT }}
       OPENAI_ORGANIZATION: ${{ secrets.OPENAI_ORGANIZATION }}
@@ -37,6 +34,6 @@ jobs:
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
-          project: "share-cat-90"
+          project: "debate-machine-69"
           entrypoint: "main.ts"
           root: "."
