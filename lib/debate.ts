@@ -130,14 +130,14 @@ export async function conductDebateStream(position: string, context: string | un
 
         // Moderator introduces each agent
         for (const agent of agentDetails) {
-          sendModeratorMessage(`${agent.name}: ${agent.personality}. Their stance is ${agent.stance} the position.`);
+          sendModeratorMessage(`\n${agent.name}: ${agent.personality}. Their stance is ${agent.stance} the position.`);
         }
 
         // Opening statements
-        sendModeratorMessage("Now, let's hear opening statements from each participant.");
+        sendModeratorMessage("Now, let's hear opening statements from each participant. ");
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
-          sendModeratorMessage(`${currentAgent.name}, please provide your opening statement.`);
+          sendModeratorMessage(`${currentAgent.name}, You first.`);
 
           const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
@@ -153,7 +153,7 @@ export async function conductDebateStream(position: string, context: string | un
 
         // Debate rounds
         for (let round = 0; round < DEBATE_ROUNDS; round++) {
-          sendModeratorMessage(`We're now moving to debate round ${round + 1}.`);
+          sendModeratorMessage(`We're now moving to debate round ${round + 1}. `);
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
@@ -174,7 +174,7 @@ export async function conductDebateStream(position: string, context: string | un
 
         // Concluding statements
         if (CONCLUDING_STATEMENTS) {
-          sendModeratorMessage(`We've now reached the concluding statements portion of our debate.`);
+          sendModeratorMessage(`We've now reached the concluding statements portion of our debate. `);
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
