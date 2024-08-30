@@ -23,6 +23,7 @@ export default function DebateForm() {
   const [errors, setErrors] = useState<string[]>([]);
   const [context, setContext] = useState("");
   const [hasDuplicateNames, setHasDuplicateNames] = useState(false);
+  const [hasDuplicateVoices, setHasDuplicateVoices] = useState(false);
   const [uuid, setUuid] = useState("");
   const [isDebating, setIsDebating] = useState(false);
   const [isDebateFinished, setIsDebateFinished] = useState(false);
@@ -96,6 +97,11 @@ export default function DebateForm() {
     return new Set(names).size !== names.length;
   };
 
+  const checkDuplicateVoices = (details: Required<Personality>[]): boolean => {
+    const voices = details.map(agent => agent.voice);
+    return new Set(voices).size !== voices.length;
+  };
+
   const adjustAgentStances = (agents: Required<Personality>[]): Required<Personality>[] => {
     const forAgent = agents.find(agent => agent.stance === "for");
     const againstAgent = agents.find(agent => agent.stance === "against");
@@ -131,6 +137,7 @@ export default function DebateForm() {
   const handleAgentChange = (newAgents: Required<Personality>[]) => {
     setAgentDetails(newAgents);
     setHasDuplicateNames(checkDuplicateNames(newAgents));
+    setHasDuplicateVoices(checkDuplicateVoices(newAgents));
   };
 
   const cancelDebate = () => {
@@ -148,6 +155,11 @@ export default function DebateForm() {
 
     if (hasDuplicateNames) {
       setErrors(["Participant names must be unique"]);
+      return;
+    }
+
+    if (hasDuplicateVoices) {
+      setErrors(["Participant voices must be unique"]);
       return;
     }
 
@@ -657,6 +669,9 @@ export default function DebateForm() {
             {hasDuplicateNames && (
               <p class="text-red-500 font-bold mt-2">Agent names must be unique</p>
             )}
+            {hasDuplicateVoices && (
+              <p class="text-red-500 font-bold mt-2">Agent voices must be unique</p>
+            )}
           </div>
         </details>
 
@@ -674,7 +689,7 @@ export default function DebateForm() {
           <button 
             type="submit" 
             class="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
-            disabled={loading || hasDuplicateNames || isDebating}
+            disabled={loading || hasDuplicateNames || hasDuplicateVoices || isDebating}
           >
             {loading ? "Debating..." : "Start Debate"}
           </button>
