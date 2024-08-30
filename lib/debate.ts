@@ -34,7 +34,8 @@ const createSystemMessage = (position: string, context: string | undefined, agen
 
 ${agentDescriptions}
 
-The debate will consist of opening statements followed by interactive debate rounds.
+The debate will consist of opening statements followed by interactive debate rounds, and then concluding statements.
+Make your interactive debate rounds concise and to the point, ensuring that each agent gets a chance to speak. The conversation should be engaging and interactive, with each agent responding to the previous arguments. Make it conversational, like all the agents are sat around a table debating.
 Maintain your assigned personality throughout the debate. Avoid starting your responses with phrases like "As [name]," or "Speaking as [name],".`;
 
   return message;
