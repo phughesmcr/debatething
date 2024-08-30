@@ -1,7 +1,7 @@
 import type { FreshContext } from "$fresh/server.ts";
 
 const WINDOW_SIZE = 60 * 1000; // 1 minute in milliseconds
-const MAX_REQUESTS = 10; // Maximum requests per minute
+const MAX_REQUESTS = 100; // Maximum requests per minute
 
 interface RateLimitEntry {
   timestamps: number[];

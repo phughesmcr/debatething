@@ -23,15 +23,23 @@ export default function DebateForm() {
   const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [context, setContext] = useState("");
+  const [hasDuplicateNames, setHasDuplicateNames] = useState(false);
 
   useEffect(() => {
     setAgentDetails(getRandomPersonalities(clamp(numAgents, 2, 4)));
   }, [numAgents]);
 
+  const checkDuplicateNames = (details: Personality[]): boolean => {
+    const names = details.map(agent => agent.name.toLowerCase());
+    return new Set(names).size !== names.length;
+  };
+
   const handleAgentDetailChange = (index: number, field: keyof Personality, value: string) => {
     setAgentDetails(prevDetails => {
       const newDetails = [...prevDetails];
       newDetails[index] = { ...newDetails[index], [field]: value };
+      setHasDuplicateNames(checkDuplicateNames(newDetails));
       return newDetails;
     });
   };
@@ -40,8 +48,14 @@ export default function DebateForm() {
     e.preventDefault();
     setErrors([]);
 
+    if (hasDuplicateNames) {
+      setErrors(["Agent names must be unique"]);
+      return;
+    }
+
     const input = {
       position: sanitizeInput(position),
+      context: sanitizeInput(context),
       numAgents: clamp(numAgents, 2, 4),
       agentDetails: agentDetails.map(agent => ({
         name: sanitizeInput(agent.name),
@@ -64,7 +78,7 @@ export default function DebateForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ position, numAgents: clamp(numAgents, 2, 4), agentDetails }),
+        body: JSON.stringify({ position, context, numAgents: clamp(numAgents, 2, 4), agentDetails }),
       });
 
       if (!response.ok) {
@@ -147,37 +161,62 @@ export default function DebateForm() {
           />
         </div>
 
-        {agentDetails.map((agent, index) => (
-          <div key={index} class="mb-4">
-            <h3 class="text-lg font-semibold mb-2">Agent {index + 1}</h3>
-            <div class="mb-2">
-              <label htmlFor={`agent-name-${index}`} class="block mb-1">Name:</label>
-              <input
-                id={`agent-name-${index}`}
-                type="text"
-                value={agent.name}
-                onInput={(e) => handleAgentDetailChange(index, "name", sanitizeInput((e.target as HTMLInputElement).value))}
+        <details class="mb-4">
+          <summary class="cursor-pointer font-semibold">Advanced options</summary>
+          <div class="mt-4 space-y-4">
+            <div>
+              <label htmlFor="context-input" class="block mb-2">Debate Context (Optional):</label>
+              <textarea
+                id="context-input"
+                value={context}
+                aria-label="Debate Context"
+                onInput={(e) => setContext(sanitizeInput((e.target as HTMLTextAreaElement).value))}
                 class="w-full p-2 border rounded"
-                maxLength={50}
-                required
+                maxLength={500}
+                rows={3}
+                placeholder="Add optional context for the debate"
               />
             </div>
-            <div class="mb-2">
-              <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
-              <textarea
-                id={`agent-personality-${index}`}
-                value={agent.personality}
-                onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
-                class="w-full p-2 border rounded"
-                maxLength={120}
-                required
-              />
+
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Agent Details</h3>
+              {agentDetails.map((agent, index) => (
+                <div key={index} class="mb-4 p-4 border rounded">
+                  <h4 class="text-md font-semibold mb-2">Agent {index + 1}</h4>
+                  <div class="mb-2">
+                    <label htmlFor={`agent-name-${index}`} class="block mb-1">Name:</label>
+                    <input
+                      id={`agent-name-${index}`}
+                      type="text"
+                      value={agent.name}
+                      onInput={(e) => handleAgentDetailChange(index, "name", sanitizeInput((e.target as HTMLInputElement).value))}
+                      class="w-full p-2 border rounded"
+                      maxLength={50}
+                      required
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
+                    <textarea
+                      id={`agent-personality-${index}`}
+                      value={agent.personality}
+                      onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
+                      class="w-full p-2 border rounded"
+                      maxLength={120}
+                      required
+                    />
+                  </div>
+                </div>
+              ))}
+              {hasDuplicateNames && (
+                <p class="text-red-500 font-bold mt-2">Agent names must be unique</p>
+              )}
             </div>
           </div>
-        ))}
+        </details>
 
         {errors.length > 0 && (
-          <div class="mb-4 text-red-500">
+          <div class="mb-4 text-red-500 font-bold">
             <ul>
               {errors.map((error, index) => (
                 <li key={index}>{error}</li>
@@ -186,7 +225,11 @@ export default function DebateForm() {
           </div>
         )}
 
-        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded" disabled={loading}>
+        <button 
+          type="submit" 
+          class="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
+          disabled={loading || hasDuplicateNames}
+        >
           {loading ? "Debating..." : "Start Debate"}
         </button>
       </form>

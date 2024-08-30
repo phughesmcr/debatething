@@ -16,18 +16,25 @@ interface AgentDetails {
   personality: string;
 }
 
-const createSystemMessage = (position: string, agentDetails: AgentDetails[]) => {
+const createSystemMessage = (position: string, context: string | undefined, agentDetails: AgentDetails[]) => {
   const agentDescriptions = agentDetails.map((agent, index) => 
     `Agent ${index + 1} (${agent.name}): ${agent.personality}`
   ).join("\n");
   
-  return `You are participating in a debate about the following position: "${position}". 
-There are ${agentDetails.length} participants in this debate, each with a unique perspective:
+  let message = `You are participating in a debate about the following position: "${position}". `;
+  
+  if (context && context.trim()) {
+    message += `\nContext for the debate: ${context}\n\n`;
+  }
+  
+  message += `There are ${agentDetails.length} participants in this debate, each with a unique perspective:
 
 ${agentDescriptions}
 
 The debate will consist of opening statements followed by interactive debate rounds.
 Maintain your assigned personality throughout the debate. Avoid starting your responses with phrases like "As [name]," or "Speaking as [name],".`;
+
+  return message;
 };
 
 const trimAgentPrefix = (content: string, agentName: string): string => {
@@ -69,7 +76,7 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
 
       let fullContent = "";
       for await (const part of response) {
-        const content = part.choices[0]?.delta?.content || '';
+        const content = trimAgentPrefix(part.choices[0]?.delta?.content || '', agentName);
         const finishReason = part.choices[0]?.finish_reason;
 
         if (content) {
@@ -100,12 +107,12 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
   throw new Error("Max retries exceeded");
 }
 
-export async function conductDebateStream(position: string, numAgents: number, agentDetails: AgentDetails[]) {
+export async function conductDebateStream(position: string, context: string | undefined, numAgents: number, agentDetails: AgentDetails[]) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const systemMessage = createSystemMessage(position, agentDetails);
+        const systemMessage = createSystemMessage(position, context, agentDetails);
         const debateHistory: ChatCompletionMessageParam[] = [{ role: "system", content: systemMessage }];
         
         // Opening statements
