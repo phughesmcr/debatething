@@ -15,10 +15,10 @@ export const handler: Handlers = {
       });
     }
 
-    const { position, context, numAgents, agentDetails } = input;
+    const { position, context, numAgents, agentDetails, uuid } = input;
 
     try {
-      const stream = await conductDebateStream(position, context, numAgents, agentDetails);
+      const stream = await conductDebateStream(position, context, numAgents, agentDetails, uuid);
       return new Response(stream, {
         headers: { "Content-Type": "text/event-stream" },
       });

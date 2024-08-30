@@ -15,6 +15,7 @@ interface AgentDetails {
   name: string;
   personality: string;
   stance: "for" | "against" | "undecided";
+  uuid: string;
 }
 
 const createSystemMessage = (position: string, context: string | undefined, agentDetails: AgentDetails[]) => {
@@ -61,7 +62,7 @@ const trimAgentPrefix = (content: string, agentName: string): string => {
   return content;
 };
 
-async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder, agentName: string) {
+async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder, agentName: string, uuid: string) {
   let retries = 0;
   while (retries < MAX_RETRIES) {
     try {
@@ -71,6 +72,7 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
         max_tokens: MAX_TOKENS,
         temperature: TEMPERATURE,
         stream: true,
+        user: uuid,
       });
 
       if (!response) throw new Error("No response from OpenAI");
@@ -108,7 +110,7 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
   throw new Error("Max retries exceeded");
 }
 
-export async function conductDebateStream(position: string, context: string | undefined, numAgents: number, agentDetails: AgentDetails[]) {
+export async function conductDebateStream(position: string, context: string | undefined, numAgents: number, agentDetails: AgentDetails[], uuid: string) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -124,7 +126,7 @@ export async function conductDebateStream(position: string, context: string | un
 
           const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-          const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name);
+          const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
 
           debateHistory.push({ role: "assistant", content: fullContent });
           
@@ -146,7 +148,7 @@ export async function conductDebateStream(position: string, context: string | un
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name);
+              const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
 
             debateHistory.push({ role: "assistant", content: fullContent });
 

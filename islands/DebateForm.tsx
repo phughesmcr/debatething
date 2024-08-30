@@ -20,14 +20,18 @@ export default function DebateForm() {
   const [errors, setErrors] = useState<string[]>([]);
   const [context, setContext] = useState("");
   const [hasDuplicateNames, setHasDuplicateNames] = useState(false);
+  const [uuid, setUuid] = useState("");
 
   useEffect(() => {
+    // Generate a new UUID for each session
+    setUuid(crypto.randomUUID());
+
     const initialAgents = getRandomPersonalities(clamp(numAgents, 2, 4)).map((p, index) => ({
       ...p,
       stance: index === 0 ? "for" : index === 1 ? "against" : "undecided" as Personality["stance"]
     }));
     setAgentDetails(initialAgents as Required<Personality>[]);
-  }, [numAgents]);
+  }, []);
 
   const checkDuplicateNames = (details: Personality[]): boolean => {
     const names = details.map(agent => agent.name.toLowerCase());
@@ -94,7 +98,8 @@ export default function DebateForm() {
         name: sanitizeInput(agent.name),
         personality: sanitizeInput(agent.personality),
         stance: agent.stance
-      }))
+      })),
+      uuid: uuid  // Include the UUID in the request
     };
     const validationResult = validateDebateInput(input);
 
