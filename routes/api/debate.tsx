@@ -15,12 +15,19 @@ export const handler: Handlers = {
       });
     }
 
-    const { position, context, numAgents, agentDetails, uuid } = input;
+    const { position, context, numAgents, agentDetails, uuid, numDebateRounds } = input;
 
     try {
-      const stream = await conductDebateStream(position, context, numAgents, agentDetails, uuid);
+      const stream = await conductDebateStream(position, context, numAgents, agentDetails, uuid, numDebateRounds);
+      if (!(stream instanceof ReadableStream)) {
+        throw new Error("Invalid stream returned from conductDebateStream");
+      }
       return new Response(stream, {
-        headers: { "Content-Type": "text/event-stream" },
+        headers: { 
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
       });
     } catch (error) {
       console.error("Error conducting debate:", error);

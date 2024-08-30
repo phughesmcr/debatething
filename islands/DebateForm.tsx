@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
-import { MAX_AGENTS, MAX_DEBATE_CONTEXT_LENGTH, MAX_POSITION_LENGTH, MIN_AGENTS, validateDebateInput } from "../lib/inputValidation.ts";
+import { MAX_AGENTS, MAX_DEBATE_CONTEXT_LENGTH, MAX_POSITION_LENGTH, MIN_AGENTS, MAX_DEBATE_ROUNDS, MIN_DEBATE_ROUNDS, validateDebateInput } from "../lib/inputValidation.ts";
 import { sanitizeInput } from "../lib/inputSanitizer.ts";
 import { MODERATOR_NAME } from "../lib/debate.ts";
 import AgentSelector from "./AgentSelector.tsx";
@@ -16,6 +16,7 @@ const trimSystemMessage = (content: string): string => {
 export default function DebateForm() {
   const [position, setPosition] = useState("");
   const [numAgents, setNumAgents] = useState(2);
+  const [numDebateRounds, setNumDebateRounds] = useState(2);
   const [agentDetails, setAgentDetails] = useState<Required<Personality>[]>([]);
   const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +77,7 @@ export default function DebateForm() {
 
   const preloadInitialAudios = useCallback(() => {
     if (debate.length === 0) {
-      console.log("Debate is empty, skipping preload");
+      
       return;
     }
     const initialIndex = debate.findIndex((_, index) => isAgentMessage(index));
@@ -146,7 +147,7 @@ export default function DebateForm() {
     setIsDebateFinished(false); // Reset debate status
 
     if (hasDuplicateNames) {
-      setErrors(["Agent names must be unique"]);
+      setErrors(["Participant names must be unique"]);
       return;
     }
 
@@ -156,6 +157,7 @@ export default function DebateForm() {
       position: sanitizeInput(position),
       context: sanitizeInput(context),
       numAgents: clamp(numAgents, 2, 4),
+      numDebateRounds: clamp(numDebateRounds, MIN_DEBATE_ROUNDS, MAX_DEBATE_ROUNDS),
       agentDetails: adjustedAgentDetails.map(agent => ({
         name: sanitizeInput(agent.name),
         personality: sanitizeInput(agent.personality),
@@ -265,9 +267,9 @@ export default function DebateForm() {
   };
 
   const handleFullDebatePlayback = async () => {
-    console.log("handleFullDebatePlayback called");
+    
     if (isFullDebatePlayingRef.current) {
-      console.log("Pausing debate playback");
+      
       isFullDebatePlayingRef.current = false;
       setIsFullDebatePlaying(false);
       if (fullDebateTimeoutRef.current) {
@@ -278,7 +280,7 @@ export default function DebateForm() {
         currentAudioRef.current.pause();
       }
     } else {
-      console.log("Starting or resuming debate playback");
+      
       isFullDebatePlayingRef.current = true;
       setIsFullDebatePlaying(true);
       setIsDebateAudioLoading(true);
@@ -295,7 +297,7 @@ export default function DebateForm() {
         await ensureNextAudiosReady(startIndex, 2);
         await resumePlayback(startIndex, startPosition);
       } else {
-        console.log("No playable messages found in the debate");
+        
         resetPlaybackState();
       }
     }
@@ -312,7 +314,7 @@ export default function DebateForm() {
   };
 
   const resumePlayback = async (index: number, position: number) => {
-    console.log(`Resuming playback from index ${index} at position ${position}`);
+    
     if (isAgentMessage(index)) {
       await ensureAudioSynthesized(index);
       const audio = audioRefs.current[index];
@@ -334,7 +336,7 @@ export default function DebateForm() {
 
   const playNextInQueue = async (index: number) => {
     if (!isFullDebatePlayingRef.current || index >= debate.length) {
-      console.log("Playback finished or index out of range");
+      
       resetPlaybackState();
       return;
     }
@@ -344,14 +346,14 @@ export default function DebateForm() {
       if (nextIndex !== null && nextIndex < debate.length) {
         playNextInQueue(nextIndex);
       } else {
-        console.log("No more playable messages");
+        
         resetPlaybackState();
       }
       return;
     }
   
     setLastPlayedIndex(index);
-    console.log(`Preparing to play audio for index: ${index}`);
+    
   
     try {
       await ensureAudioSynthesized(index);
@@ -362,12 +364,12 @@ export default function DebateForm() {
   
       currentAudioRef.current = audio;
       audio.onended = () => {
-        console.log(`Audio ended for index: ${index}`);
+        
         const nextIndex = getNextPlayableIndex(index);
         if (nextIndex !== null && nextIndex < debate.length) {
           fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 10);
         } else {
-          console.log("Playback finished");
+          
           resetPlaybackState();
         }
       };
@@ -381,7 +383,7 @@ export default function DebateForm() {
       if (nextIndex !== null && nextIndex < debate.length) {
         fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 10);
       } else {
-        console.log("No more playable messages after error");
+        
         resetPlaybackState();
       }
     }
@@ -389,7 +391,7 @@ export default function DebateForm() {
 
   const queueAudioSynthesis = useCallback((index: number) => {
     if (!isAgentMessage(index) || index >= debate.length) {
-      console.log(`Skipping synthesis for index ${index}: Not an agent message or out of range`);
+      
       return;
     }
     if (!audioRefs.current[index] && 
@@ -426,7 +428,7 @@ export default function DebateForm() {
 
   const synthesizeAudio = useCallback(async (index: number) => {
     if (audioRefs.current[index] || synthesizedAudios.has(index)) {
-      console.log(`Audio already synthesized for index: ${index}, skipping synthesis`);
+      
       return;
     }
   
@@ -444,7 +446,7 @@ export default function DebateForm() {
     let voice = message.role === MODERATOR_NAME ? "nova" : agentDetails.find(agent => agent.name === message.role)?.voice;
     if (!voice) voice = "nova";
   
-    console.log(`Synthesizing audio for index: ${index}`);
+    
     try {
       const response = await fetch("/api/voicesynth", {
         method: "POST",
@@ -457,7 +459,7 @@ export default function DebateForm() {
       const data = await response.json();
       if (data.error) throw new Error(`API error for index ${index}: ${data.error}`);
   
-      console.log(`Creating new Audio object for index: ${index}`);
+      
       const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
       audioRefs.current[index] = audio;
       setSynthesizedAudios(prev => {
@@ -485,23 +487,23 @@ export default function DebateForm() {
   };
 
   const handleVoiceSynth = async (index: number, content: string, voice: string, forceSynthesize: boolean = false) =>    {
-    console.log(`handleVoiceSynth called for index: ${index}, forceSynthesize: ${forceSynthesize}`);
+    
     if (playingAudio === index && !isFullDebatePlayingRef.current) {
-      console.log("Pausing current audio");
+      
       audioRefs.current[index]?.pause();
       setPlayingAudio(null);
       return;
     }
 
     if (playingAudio !== null && !isFullDebatePlayingRef.current) {
-      console.log("Pausing previously playing audio");
+      
       audioRefs.current[playingAudio]?.pause();
     }
 
     setVoiceSynthLoading(prev => ({ ...prev, [index]: true }));
     try {
       if (!audioRefs.current[index] || forceSynthesize) {
-        console.log(`Fetching new audio from API for index: ${index}`);
+        
         const response = await fetch("/api/voicesynth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -513,13 +515,13 @@ export default function DebateForm() {
         const data = await response.json();
         if (data.error) throw new Error(`API error for index ${index}: ${data.error}`);
 
-        console.log(`Creating new Audio object for index: ${index}`);
+        
         const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
         audioRefs.current[index] = audio;
         setSynthesizedAudios(prev => new Set(prev).add(index));
 
         audio.addEventListener('ended', () => {
-          console.log(`Audio playback ended for index: ${index}`);
+          
           if (!isFullDebatePlayingRef.current) {
             setPlayingAudio(null);
           }
@@ -529,7 +531,7 @@ export default function DebateForm() {
       }
 
       if (!isFullDebatePlayingRef.current) {
-        console.log(`Playing individual audio for index: ${index}`);
+        
         await audioRefs.current[index]?.play();
         setPlayingAudio(index);
       }
@@ -558,7 +560,7 @@ export default function DebateForm() {
       }
     }
 
-    debate.forEach((message, index) => {
+    debate.forEach((_message, index) => {
       if (isAgentMessage(index) && audioRefs.current[index]) {
         const audio = audioRefs.current[index];
         const blob = dataURItoBlob(audio.src);
@@ -598,11 +600,13 @@ export default function DebateForm() {
             onInput={(e) => setPosition(sanitizeInput((e.target as HTMLInputElement).value))}
             class="w-full p-2 border rounded"
             maxLength={MAX_POSITION_LENGTH}            
+            placeholder="The moon is made of cheese"
             required
           />
         </div>
-        <div class="mb-4">
-          <label htmlFor="num-agents-input" class="block mb-2">Number of AI agents (2-4):</label>
+        <div class="mb-4 flex items-center space-x-4">
+          <div class="flex-1">
+            <label htmlFor="num-agents-input" class="block mb-2">Number of Participants (2-4):</label>
           <input
             id="num-agents-input"
             type="number"
@@ -611,9 +615,24 @@ export default function DebateForm() {
             value={numAgents}
             onInput={(e) => setNumAgents(clamp(parseInt(sanitizeInput((e.target as HTMLInputElement).value)), MIN_AGENTS, MAX_AGENTS))}
             class="w-full p-2 border rounded"
-            aria-label="Number of AI agents"
+              aria-label="Number of Participants"
+              required
+            />
+          </div>
+          <div class="flex-1">
+            <label htmlFor="num-debate-rounds-input" class="block mb-2">Number of Debate Rounds (1-3):</label>
+            <input
+              id="num-debate-rounds-input"
+              type="number"
+              min={MIN_DEBATE_ROUNDS}
+              max={MAX_DEBATE_ROUNDS}
+              value={numDebateRounds}
+              onInput={(e) => setNumDebateRounds(clamp(parseInt(sanitizeInput((e.target as HTMLInputElement).value)), MIN_DEBATE_ROUNDS, MAX_DEBATE_ROUNDS))}
+              class="w-full p-2 border rounded"
+              aria-label="Number of Debate Rounds"
             required
           />
+          </div>
         </div>
 
         <details class="mb-4">

@@ -33,7 +33,7 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
     }
 
     try {
-      console.log("Attempting to synthesize voice with message:", props.message.substring(0, 50) + "...");
+      
       
       if (!agent || !agent.audio || !agent.audio.speech) {
         throw new Error("OpenAI agent is not properly configured");
@@ -59,7 +59,7 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
       const audioBase64 = encodeBase64(new Uint8Array(audioBuffer));
       const response: VoiceSynthResponse = { audio: audioBase64, error: null };
       
-      console.log("Voice synthesis successful");
+      
       
       return new Response(JSON.stringify(response), {
         status: 200,

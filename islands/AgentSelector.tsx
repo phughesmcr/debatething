@@ -32,11 +32,11 @@ export default function AgentSelector({ agents, onAgentChange }: AgentSelectorPr
 
   return (
     <div>
-      <h3 class="text-lg font-semibold mb-2">Agent Details</h3>
+      <h3 class="text-lg font-semibold mb-2">Participant Details</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {agents.map((agent, index) => (
           <div key={index} class="border rounded p-4">
-            <h4 class="text-md font-semibold mb-2">Agent {index + 1}</h4>
+            <h4 class="text-md font-semibold mb-2">Participant {index + 1}</h4>
             {showCustomAgents ? (
               <>
                 <div class="mb-2">
