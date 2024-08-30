@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "preact/hooks";
+import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
 import { validateDebateInput } from "../lib/inputValidation.ts";
@@ -35,7 +35,9 @@ export default function DebateForm() {
   const [lastPlayedIndex, setLastPlayedIndex] = useState<number | null>(null);
   const [lastPlayedPosition, setLastPlayedPosition] = useState<number>(0);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const synthesisQueueRef = useRef<number[]>([]);
+  const isSynthesizingRef = useRef(false);
+  const preloadedIndicesRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     // Generate a new UUID for each session
@@ -47,6 +49,33 @@ export default function DebateForm() {
     }));
     setAgentDetails(initialAgents as Required<Personality>[]);
   }, []);
+
+  useEffect(() => {
+    if (isDebateFinished && debate.length > 0) {
+      preloadInitialAudios();
+    }
+    return () => {
+      // Cleanup audio objects
+      Object.values(audioRefs.current).forEach(audio => audio?.pause());
+      audioRefs.current = {};
+    };
+  }, [debate, isDebateFinished]);
+
+  const preloadInitialAudios = useCallback(() => {
+    if (debate.length === 0) {
+      console.log("Debate is empty, skipping preload");
+      return;
+    }
+    const initialIndex = debate.findIndex((_, index) => isAgentMessage(index));
+    if (initialIndex !== -1) {
+      for (let i = 0; i < 3; i++) {
+        const indexToPreload = getNextPlayableIndex(initialIndex + i - 1);
+        if (indexToPreload !== null) {
+          queueAudioSynthesis(indexToPreload);
+        }
+      }
+    }
+  }, [debate]);
 
   const checkDuplicateNames = (details: Personality[]): boolean => {
     const names = details.map(agent => agent.name.toLowerCase());
@@ -222,7 +251,6 @@ export default function DebateForm() {
   const resetPlaybackState = () => {
     setLastPlayedIndex(null);
     setLastPlayedPosition(0);
-    setIsPlaying(false);
     setIsFullDebatePlaying(false);
     isFullDebatePlayingRef.current = false;
   };
@@ -233,7 +261,6 @@ export default function DebateForm() {
       console.log("Pausing debate playback");
       isFullDebatePlayingRef.current = false;
       setIsFullDebatePlaying(false);
-      setIsPlaying(false);
       if (fullDebateTimeoutRef.current) {
         clearTimeout(fullDebateTimeoutRef.current);
       }
@@ -255,11 +282,22 @@ export default function DebateForm() {
       }
 
       if (startIndex !== -1) {
+        await ensureNextAudiosReady(startIndex, 3); // Preload first 3 audios
         await resumePlayback(startIndex, startPosition);
       } else {
         console.log("No playable messages found in the debate");
         resetPlaybackState();
       }
+    }
+  };
+
+  const ensureNextAudiosReady = async (startIndex: number, count: number = 3) => {
+    let currentIndex = startIndex;
+    for (let i = 0; i < count; i++) {
+      if (currentIndex < debate.length && isAgentMessage(currentIndex)) {
+        await ensureAudioSynthesized(currentIndex);
+      }
+      currentIndex++;
     }
   };
 
@@ -283,13 +321,14 @@ export default function DebateForm() {
 
   const playNextInQueue = async (index: number) => {
     if (!isFullDebatePlayingRef.current || index >= debate.length) {
+      console.log("Playback finished or index out of range");
       resetPlaybackState();
       return;
     }
-
+  
     if (!isAgentMessage(index)) {
       const nextIndex = getNextPlayableIndex(index);
-      if (nextIndex !== null) {
+      if (nextIndex !== null && nextIndex < debate.length) {
         playNextInQueue(nextIndex);
       } else {
         console.log("No more playable messages");
@@ -297,37 +336,37 @@ export default function DebateForm() {
       }
       return;
     }
-
+  
     setLastPlayedIndex(index);
     console.log(`Preparing to play audio for index: ${index}`);
-
+  
     try {
-      const wasSynthesized = await ensureAudioSynthesized(index);
-      console.log(`Synthesis result for index ${index}: ${wasSynthesized ? 'synthesized' : 'not synthesized'}`);
-
+      await ensureAudioSynthesized(index);
       const audio = audioRefs.current[index];
       if (!audio) {
         throw new Error(`Audio not found for index: ${index} after synthesis attempt`);
       }
-
-      setIsPlaying(true);
+  
       currentAudioRef.current = audio;
       audio.onended = () => {
         console.log(`Audio ended for index: ${index}`);
         const nextIndex = getNextPlayableIndex(index);
-        if (nextIndex !== null) {
-          fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 1000);
+        if (nextIndex !== null && nextIndex < debate.length) {
+          fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 10);
         } else {
           console.log("Playback finished");
           resetPlaybackState();
         }
       };
+      
+      // Preload next three audios
+      await ensureNextAudiosReady(index + 1, 3);
       await audio.play();
     } catch (error) {
       console.error(`Error playing audio for index ${index}:`, error);
       const nextIndex = getNextPlayableIndex(index);
-      if (nextIndex !== null) {
-        fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 1000);
+      if (nextIndex !== null && nextIndex < debate.length) {
+        fullDebateTimeoutRef.current = setTimeout(() => playNextInQueue(nextIndex), 10);
       } else {
         console.log("No more playable messages after error");
         resetPlaybackState();
@@ -335,36 +374,99 @@ export default function DebateForm() {
     }
   };
 
-  const ensureAudioSynthesized = async (index: number): Promise<boolean> => {
-    if (index < debate.length) {
-      const message = debate[index];
-      let voice = message.role === MODERATOR_NAME ? "nova" : agentDetails.find(agent => agent.name === message.role)?.voice;
-      if (!voice) voice = "nova";
-      console.log(`Checking synthesis for index: ${index}, role: ${message.role}, voice: ${voice}`);
-      if (voice && (!audioRefs.current[index] || !synthesizedAudios.has(index))) {
-        console.log(`Attempting to synthesize audio for index: ${index}`);
-        try {
-          await handleVoiceSynth(index, message.content, voice, true);
-          // Add a small delay to ensure the audio is loaded
-          await new Promise(resolve => setTimeout(resolve, 100));
-          if (!audioRefs.current[index]) {
-            throw new Error(`Audio not created after synthesis for index: ${index}`);
-          }
-          return true;
-        } catch (error) {
-          console.error(`Failed to synthesize audio for index: ${index}`, error);
-          return false;
-        }
-      } else {
-        console.log(`Audio already exists for index: ${index}, skipping synthesis`);
-      }
-    } else {
-      console.warn(`Index ${index} is out of debate range`);
+  const queueAudioSynthesis = useCallback((index: number) => {
+    if (!isAgentMessage(index) || index >= debate.length) {
+      console.log(`Skipping synthesis for index ${index}: Not an agent message or out of range`);
+      return;
     }
-    return false;
+    if (!audioRefs.current[index] && 
+        !synthesizedAudios.has(index) && 
+        !synthesisQueueRef.current.includes(index) && 
+        !preloadedIndicesRef.current.has(index)) {
+      synthesisQueueRef.current.push(index);
+      preloadedIndicesRef.current.add(index);
+      processSynthesisQueue();
+    }
+  }, [debate, synthesizedAudios]);
+
+  const processSynthesisQueue = useCallback(async () => {
+    if (isSynthesizingRef.current) return;
+    
+    isSynthesizingRef.current = true;
+    
+    try {
+      while (synthesisQueueRef.current.length > 0) {
+        const index = synthesisQueueRef.current[0];
+        try {
+          if (!audioRefs.current[index] && !synthesizedAudios.has(index)) {
+            await synthesizeAudio(index);
+          }
+        } catch (error) {
+          console.error(`Error synthesizing audio for index ${index}:`, error);
+        } finally {
+          synthesisQueueRef.current.shift();
+        }
+      }
+    } finally {
+      isSynthesizingRef.current = false;
+    }
+  }, [synthesizedAudios]);
+
+  const synthesizeAudio = useCallback(async (index: number) => {
+    if (audioRefs.current[index] || synthesizedAudios.has(index)) {
+      console.log(`Audio already synthesized for index: ${index}, skipping synthesis`);
+      return;
+    }
+  
+    if (index >= debate.length) {
+      console.warn(`Index ${index} is out of debate range`);
+      return;
+    }
+  
+    const message = debate[index];
+    if (!message || typeof message !== 'object' || !('role' in message) || !('content' in message)) {
+      console.error(`Invalid message structure at index ${index}`);
+      return;
+    }
+  
+    let voice = message.role === MODERATOR_NAME ? "nova" : agentDetails.find(agent => agent.name === message.role)?.voice;
+    if (!voice) voice = "nova";
+  
+    console.log(`Synthesizing audio for index: ${index}`);
+    try {
+      const response = await fetch("/api/voicesynth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message.content, voice }),
+      });
+  
+      if (!response.ok) throw new Error(`Failed to synthesize voice for index ${index}: ${response.statusText}`);
+  
+      const data = await response.json();
+      if (data.error) throw new Error(`API error for index ${index}: ${data.error}`);
+  
+      console.log(`Creating new Audio object for index: ${index}`);
+      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
+      audioRefs.current[index] = audio;
+      setSynthesizedAudios(prev => new Set(prev).add(index));
+    } catch (error) {
+      console.error(`Error in synthesizeAudio for index ${index}:`, error);
+      throw error;
+    }
+  }, [debate, agentDetails]);
+
+  const ensureAudioSynthesized = async (index: number): Promise<void> => {
+    if (index >= debate.length) {
+      console.warn(`Index ${index} is out of debate range`);
+      return;
+    }
+
+    if (!audioRefs.current[index] && !synthesizedAudios.has(index)) {
+      await synthesizeAudio(index);
+    }
   };
 
-  const handleVoiceSynth = async (index: number, content: string, voice: string, forceSynthesize: boolean = false) => {
+  const handleVoiceSynth = async (index: number, content: string, voice: string, forceSynthesize: boolean = false) =>    {
     console.log(`handleVoiceSynth called for index: ${index}, forceSynthesize: ${forceSynthesize}`);
     if (playingAudio === index && !isFullDebatePlayingRef.current) {
       console.log("Pausing current audio");
@@ -594,6 +696,7 @@ export default function DebateForm() {
                   onClick={() => handleVoiceSynth(index, message.content, agentDetails.find(agent => agent.name === message.role)?.voice!)}
                   disabled={voiceSynthLoading[index] || isFullDebatePlaying}
                   class="ml-2 px-2 py-1 bg-green-400 text-white rounded disabled:opacity-50 hidden"
+                  aria-label={voiceSynthLoading[index] || (isFullDebatePlaying && playingAudio === index) ? "Synthesizing audio" : playingAudio === index ? "Pause audio" : synthesizedAudios.has(index) ? "Play audio" : "Generate audio"}
                 >
                   {voiceSynthLoading[index] || (isFullDebatePlaying && playingAudio === index) ? "Synthesizing..." : playingAudio === index ? "⏸️" : synthesizedAudios.has(index) ? "🔊" : "🔊 (Generate)"}
                 </button>
