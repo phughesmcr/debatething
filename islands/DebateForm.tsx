@@ -1,6 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
+import { validateDebateInput } from "../lib/inputValidation.ts";
 
 interface AgentDetails {
   name: string;
@@ -20,6 +21,7 @@ export default function DebateForm() {
   const [agentDetails, setAgentDetails] = useState<Personality[]>([]);
   const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
     setAgentDetails(getRandomPersonalities(clamp(numAgents, 2, 4)));
@@ -35,6 +37,21 @@ export default function DebateForm() {
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
+    setErrors([]);
+
+    const input = {
+      position,
+      numAgents: clamp(numAgents, 2, 4),
+      agentDetails
+    };
+
+    const validationResult = validateDebateInput(input);
+
+    if (!validationResult.valid) {
+      setErrors(validationResult.errors);
+      return;
+    }
+
     setLoading(true);
     setDebate([]);
 
@@ -90,7 +107,7 @@ export default function DebateForm() {
       }
     } catch (error) {
       console.error("Error:", error);
-      // Handle error (e.g., show error message to user)
+      setErrors(["An error occurred while fetching the debate results"]);
     } finally {
       setLoading(false);
     }
@@ -153,6 +170,16 @@ export default function DebateForm() {
           </div>
         ))}
 
+        {errors.length > 0 && (
+          <div class="mb-4 text-red-500">
+            <ul>
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded" disabled={loading}>
           {loading ? "Debating..." : "Start Debate"}
         </button>
@@ -161,7 +188,7 @@ export default function DebateForm() {
       {debate.length > 0 && (
         <div>
           <h2 class="text-2xl font-bold mb-4">Debate Results</h2>
-          {debate.map((message, index) => (
+          {debate.filter(message => message.role !== "user").map((message, index) => (
             <div key={index} class="mb-4">
               <strong>{agentDetails.find(agent => agent.name === message.role)?.name || message.role}:</strong> {message.content}
             </div>

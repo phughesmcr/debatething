@@ -1,16 +1,21 @@
 import { Handlers } from "$fresh/server.ts";
 import { conductDebateStream } from "lib/debate.ts";
+import { validateDebateInput } from "lib/inputValidation.ts";
 
 export const handler: Handlers = {
   async POST(req) {
-    const { position, numAgents, agentDetails } = await req.json();
+    const input = await req.json();
 
-    if (!position || !numAgents || !agentDetails) {
-      return new Response(JSON.stringify({ error: "Missing required data" }), {
+    const validationResult = validateDebateInput(input);
+
+    if (!validationResult.valid) {
+      return new Response(JSON.stringify({ errors: validationResult.errors }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    const { position, numAgents, agentDetails } = input;
 
     try {
       const stream = await conductDebateStream(position, numAgents, agentDetails);
