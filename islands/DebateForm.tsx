@@ -4,12 +4,6 @@ import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
 import { validateDebateInput } from "../lib/inputValidation.ts";
 import { sanitizeInput } from "../lib/inputSanitizer.ts";
 
-interface AgentDetails {
-  name: string;
-  personality: string;
-  stance: "for" | "against" | "undecided";
-}
-
 const trimSystemMessage = (content: string): string => {
   if (content.includes('[SYSTEM]')) {
     return "";
@@ -20,7 +14,7 @@ const trimSystemMessage = (content: string): string => {
 export default function DebateForm() {
   const [position, setPosition] = useState("");
   const [numAgents, setNumAgents] = useState(2);
-  const [agentDetails, setAgentDetails] = useState<Personality[]>([]);
+  const [agentDetails, setAgentDetails] = useState<Required<Personality>[]>([]);
   const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -30,9 +24,9 @@ export default function DebateForm() {
   useEffect(() => {
     const initialAgents = getRandomPersonalities(clamp(numAgents, 2, 4)).map((p, index) => ({
       ...p,
-      stance: index === 0 ? "for" : index === 1 ? "against" : "undecided"
+      stance: index === 0 ? "for" : index === 1 ? "against" : "undecided" as Personality["stance"]
     }));
-    setAgentDetails(initialAgents);
+    setAgentDetails(initialAgents as Required<Personality>[]);
   }, [numAgents]);
 
   const checkDuplicateNames = (details: Personality[]): boolean => {
@@ -40,7 +34,7 @@ export default function DebateForm() {
     return new Set(names).size !== names.length;
   };
 
-  const adjustAgentStances = (agents: AgentDetails[]): AgentDetails[] => {
+  const adjustAgentStances = (agents: Required<Personality>[]): Required<Personality>[] => {
     const forAgent = agents.find(agent => agent.stance === "for");
     const againstAgent = agents.find(agent => agent.stance === "against");
 
