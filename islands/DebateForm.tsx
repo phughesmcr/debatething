@@ -161,7 +161,7 @@ export default function DebateForm() {
       {debate.length > 0 && (
         <div>
           <h2 class="text-2xl font-bold mb-4">Debate Results</h2>
-          {debate.filter(message => message.role !== "user").map((message, index) => (
+          {debate.map((message, index) => (
             <div key={index} class="mb-4">
               <strong>{agentDetails.find(agent => agent.name === message.role)?.name || message.role}:</strong> {message.content}
             </div>
