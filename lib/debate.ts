@@ -6,6 +6,7 @@ const MODEL = "gpt-4o-mini";
 const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.2;
 const DEBATE_ROUNDS = 2;
+const CONCLUDING_STATEMENTS = true; // New constant
 
 // Add new constants for error handling
 const MAX_RETRIES = 3;
@@ -148,7 +149,7 @@ export async function conductDebateStream(position: string, context: string | un
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-              const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
+            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
@@ -157,6 +158,30 @@ export async function conductDebateStream(position: string, context: string | un
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endTurn })}\n\n`));
           }
         }
+
+        // Concluding statements
+        if (CONCLUDING_STATEMENTS) {
+          const concludingStart = `Starting concluding statements.`;
+          debateHistory.push({ role: "user", content: concludingStart });
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: concludingStart })}\n\n`));
+
+          for (let agentNum = 0; agentNum < numAgents; agentNum++) {
+            const currentAgent = agentDetails[agentNum];
+            const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
+            debateHistory.push({ role: "user", content: userPrompt });
+
+            const messages: ChatCompletionMessageParam[] = [...debateHistory];
+
+            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
+
+            debateHistory.push({ role: "assistant", content: fullContent });
+
+            const endStatement = `End of ${currentAgent.name}'s concluding statement.`;
+            debateHistory.push({ role: "user", content: endStatement });
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endStatement })}\n\n`));
+          }
+        }
+
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (error) {
         console.error("Error in conductDebateStream:", error);
