@@ -1,11 +1,37 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
+import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
+
+interface AgentDetails {
+  name: string;
+  personality: string;
+}
+
+const trimSystemMessage = (content: string): string => {
+  if (content.includes('[SYSTEM]')) {
+    return "";
+  }
+  return content;
+};
 
 export default function DebateForm() {
   const [position, setPosition] = useState("");
   const [numAgents, setNumAgents] = useState(2);
+  const [agentDetails, setAgentDetails] = useState<Personality[]>([]);
   const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setAgentDetails(getRandomPersonalities(clamp(numAgents, 2, 4)));
+  }, [numAgents]);
+
+  const handleAgentDetailChange = (index: number, field: keyof Personality, value: string) => {
+    setAgentDetails(prevDetails => {
+      const newDetails = [...prevDetails];
+      newDetails[index] = { ...newDetails[index], [field]: value };
+      return newDetails;
+    });
+  };
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -18,7 +44,7 @@ export default function DebateForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ position, numAgents: clamp(numAgents, 2, 4) }),
+        body: JSON.stringify({ position, numAgents: clamp(numAgents, 2, 4), agentDetails }),
       });
 
       if (!response.ok) {
@@ -48,13 +74,13 @@ export default function DebateForm() {
               const parsed = JSON.parse(data);
               if (parsed.role && parsed.content) {
                 if (currentMessage.role && currentMessage.role !== parsed.role) {
-                  setDebate((prev) => [...prev, currentMessage]);
+                  setDebate((prev) => [...prev, { ...currentMessage, content: trimSystemMessage(currentMessage.content) }]);
                   currentMessage = { role: parsed.role, content: parsed.content };
                 } else {
                   currentMessage.role = parsed.role;
                   currentMessage.content += parsed.content;
                 }
-                setDebate((prev) => [...prev.slice(0, -1), { ...currentMessage }]);
+                setDebate((prev) => [...prev.slice(0, -1), { ...currentMessage, content: trimSystemMessage(currentMessage.content) }]);
               }
             } catch (error) {
               console.error("Error parsing SSE:", error);
@@ -99,6 +125,34 @@ export default function DebateForm() {
             required
           />
         </div>
+
+        {agentDetails.map((agent, index) => (
+          <div key={index} class="mb-4">
+            <h3 class="text-lg font-semibold mb-2">Agent {index + 1}</h3>
+            <div class="mb-2">
+              <label htmlFor={`agent-name-${index}`} class="block mb-1">Name:</label>
+              <input
+                id={`agent-name-${index}`}
+                type="text"
+                value={agent.name}
+                onInput={(e) => handleAgentDetailChange(index, "name", (e.target as HTMLInputElement).value)}
+                class="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div class="mb-2">
+              <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
+              <textarea
+                id={`agent-personality-${index}`}
+                value={agent.personality}
+                onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
+                class="w-full p-2 border rounded"
+                required
+              />
+            </div>
+          </div>
+        ))}
+
         <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded" disabled={loading}>
           {loading ? "Debating..." : "Start Debate"}
         </button>
@@ -107,9 +161,9 @@ export default function DebateForm() {
       {debate.length > 0 && (
         <div>
           <h2 class="text-2xl font-bold mb-4">Debate Results</h2>
-          {debate.map((message, index) => (
+          {debate.filter(message => message.role !== "user").map((message, index) => (
             <div key={index} class="mb-4">
-              <strong>{message.role}:</strong> {message.content}
+              <strong>{agentDetails.find(agent => agent.name === message.role)?.name || message.role}:</strong> {message.content}
             </div>
           ))}
         </div>

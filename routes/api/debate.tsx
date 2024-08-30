@@ -3,17 +3,17 @@ import { conductDebateStream } from "lib/debate.ts";
 
 export const handler: Handlers = {
   async POST(req) {
-    const { position, numAgents } = await req.json();
+    const { position, numAgents, agentDetails } = await req.json();
 
-    if (!position || !numAgents) {
-      return new Response(JSON.stringify({ error: "Missing position or numAgents" }), {
+    if (!position || !numAgents || !agentDetails) {
+      return new Response(JSON.stringify({ error: "Missing required data" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
     try {
-      const stream = await conductDebateStream(position, numAgents);
+      const stream = await conductDebateStream(position, numAgents, agentDetails);
       return new Response(stream, {
         headers: { "Content-Type": "text/event-stream" },
       });
