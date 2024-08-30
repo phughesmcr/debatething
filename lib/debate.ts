@@ -6,7 +6,7 @@ const MODEL = "gpt-4o-mini";
 const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.2;
 const DEBATE_ROUNDS = 2;
-const CONCLUDING_STATEMENTS = true; // New constant
+const CONCLUDING_STATEMENTS = true;
 
 // Add new constants for error handling
 const MAX_RETRIES = 3;
