@@ -1,8 +1,10 @@
+export type VoiceType = "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+
 export interface Personality {
     name: string;
     personality: string;
     stance?: "for" | "against" | "undecided";
-    voice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+    voice?: VoiceType;
   }
   
   export const personalities: Personality[] = [

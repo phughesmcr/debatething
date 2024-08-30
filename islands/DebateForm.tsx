@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
-import { validateDebateInput } from "../lib/inputValidation.ts";
+import { MAX_AGENTS, MAX_DEBATE_CONTEXT_LENGTH, MAX_POSITION_LENGTH, MIN_AGENTS, validateDebateInput } from "../lib/inputValidation.ts";
 import { sanitizeInput } from "../lib/inputSanitizer.ts";
 import { MODERATOR_NAME } from "../lib/debate.ts";
+import AgentSelector from "./AgentSelector.tsx";
 
 const trimSystemMessage = (content: string): string => {
   if (content.includes('[SYSTEM]')) {
@@ -46,12 +47,21 @@ export default function DebateForm() {
     // Generate a new UUID for each session
     setUuid(crypto.randomUUID());
 
-    const initialAgents = getRandomPersonalities(clamp(numAgents, 2, 4)).map((p, index) => ({
+    updateAgentDetails(numAgents);
+  }, []);
+
+  useEffect(() => {
+    updateAgentDetails(numAgents);
+  }, [numAgents]);
+
+  const updateAgentDetails = (count: number) => {
+    const clampedCount = clamp(count, 2, 4);
+    const newAgentDetails = getRandomPersonalities(clampedCount).map((p, index) => ({
       ...p,
       stance: index === 0 ? "for" : index === 1 ? "against" : "undecided" as Personality["stance"]
     }));
-    setAgentDetails(initialAgents as Required<Personality>[]);
-  }, []);
+    setAgentDetails(newAgentDetails as Required<Personality>[]);
+  };
 
   useEffect(() => {
     if (isDebateFinished && debate.length > 0) {
@@ -117,13 +127,9 @@ export default function DebateForm() {
     return adjustedAgents;
   };
 
-  const handleAgentDetailChange = (index: number, field: keyof Personality, value: string) => {
-    setAgentDetails(prevDetails => {
-      const newDetails = [...prevDetails];
-      newDetails[index] = { ...newDetails[index], [field]: value };
-      setHasDuplicateNames(checkDuplicateNames(newDetails));
-      return newDetails;
-    });
+  const handleAgentChange = (newAgents: Required<Personality>[]) => {
+    setAgentDetails(newAgents);
+    setHasDuplicateNames(checkDuplicateNames(newAgents));
   };
 
   const cancelDebate = () => {
@@ -540,7 +546,7 @@ export default function DebateForm() {
     if (!allAudiosSynthesized) {
       setIsPreloadingAudios(true);
       try {
-        const synthPromises = debate.map((message, index) => {
+        const synthPromises = debate.map((_message, index) => {
           if (isAgentMessage(index) && !audioRefs.current[index]) {
             return synthesizeAudio(index);
           }
@@ -591,7 +597,7 @@ export default function DebateForm() {
             aria-label="Position to debate"
             onInput={(e) => setPosition(sanitizeInput((e.target as HTMLInputElement).value))}
             class="w-full p-2 border rounded"
-            maxLength={280}
+            maxLength={MAX_POSITION_LENGTH}            
             required
           />
         </div>
@@ -600,10 +606,10 @@ export default function DebateForm() {
           <input
             id="num-agents-input"
             type="number"
-            min="2"
-            max="4"
+            min={MIN_AGENTS}
+            max={MAX_AGENTS}
             value={numAgents}
-            onInput={(e) => setNumAgents(parseInt(sanitizeInput((e.target as HTMLInputElement).value)))}
+            onInput={(e) => setNumAgents(clamp(parseInt(sanitizeInput((e.target as HTMLInputElement).value)), MIN_AGENTS, MAX_AGENTS))}
             class="w-full p-2 border rounded"
             aria-label="Number of AI agents"
             required
@@ -611,7 +617,7 @@ export default function DebateForm() {
         </div>
 
         <details class="mb-4">
-          <summary class="cursor-pointer font-semibold">Advanced options</summary>
+          <summary class="cursor-pointer font-semibold">Customization options</summary>
           <div class="mt-4 space-y-4">
             <div>
               <label htmlFor="context-input" class="block mb-2">Debate Context (Optional):</label>
@@ -621,77 +627,17 @@ export default function DebateForm() {
                 aria-label="Debate Context"
                 onInput={(e) => setContext(sanitizeInput((e.target as HTMLTextAreaElement).value))}
                 class="w-full p-2 border rounded"
-                maxLength={500}
+                maxLength={MAX_DEBATE_CONTEXT_LENGTH}
                 rows={3}
                 placeholder="Add optional context for the debate"
               />
             </div>
 
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Agent Details</h3>
-              {agentDetails.map((agent, index) => (
-                <div key={index} class="mb-4 p-4 border rounded">
-                  <h4 class="text-md font-semibold mb-2">Agent {index + 1}</h4>
-                  <div class="mb-2">
-                    <label htmlFor={`agent-name-${index}`} class="block mb-1">Name:</label>
-                    <input
-                      id={`agent-name-${index}`}
-                      type="text"
-                      value={agent.name}
-                      onInput={(e) => handleAgentDetailChange(index, "name", sanitizeInput((e.target as HTMLInputElement).value))}
-                      class="w-full p-2 border rounded"
-                      maxLength={50}
-                      required
-                    />
-                  </div>
-                  <div class="mb-2">
-                    <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
-                    <textarea
-                      id={`agent-personality-${index}`}
-                      value={agent.personality}
-                      onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
-                      class="w-full p-2 border rounded"
-                      maxLength={120}
-                      required
-                    />
-                  </div>
-                  <div class="mb-2">
-                    <label htmlFor={`agent-stance-${index}`} class="block mb-1">Stance:</label>
-                    <select
-                      id={`agent-stance-${index}`}
-                      value={agent.stance}
-                      onChange={(e) => handleAgentDetailChange(index, "stance", (e.target as HTMLSelectElement).value)}
-                      class="w-full p-2 border rounded"
-                      required
-                    >
-                      <option value="for">For</option>
-                      <option value="against">Against</option>
-                      <option value="undecided">Undecided</option>
-                    </select>
-                  </div>
-                  <div class="mb-2">
-                    <label htmlFor={`agent-voice-${index}`} class="block mb-1">Voice:</label>
-                    <select
-                      id={`agent-voice-${index}`}
-                      value={agent.voice}
-                      onChange={(e) => handleAgentDetailChange(index, "voice", (e.target as HTMLSelectElement).value)}
-                      class="w-full p-2 border rounded"
-                      required
-                    >
-                      <option value="alloy">Alloy (Male)</option>
-                      <option value="echo">Echo (Male)</option>
-                      <option value="fable">Fable (Male)</option>
-                      <option value="onyx">Onyx (Male)</option>
-                      <option value="nova">Nova (Female)</option>
-                      <option value="shimmer">Shimmer (Female)</option>
-                    </select>
-                  </div>
-                </div>
-              ))}
-              {hasDuplicateNames && (
-                <p class="text-red-500 font-bold mt-2">Agent names must be unique</p>
-              )}
-            </div>
+            <AgentSelector agents={agentDetails} onAgentChange={handleAgentChange} />
+
+            {hasDuplicateNames && (
+              <p class="text-red-500 font-bold mt-2">Agent names must be unique</p>
+            )}
           </div>
         </details>
 
