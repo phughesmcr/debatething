@@ -9,11 +9,13 @@ const DEBATE_ROUNDS = 1;
 const CONCLUDING_STATEMENTS = true;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+export const MODERATOR_NAME = "Moderator";
 
 interface AgentDetails {
   name: string;
   personality: string;
-  stance: "for" | "against" | "undecided";
+  stance: "for" | "against" | "undecided" | "moderator";
+  voice: string;
   uuid: string;
 }
 
@@ -118,9 +120,25 @@ export async function conductDebateStream(position: string, context: string | un
         const systemMessage = createSystemMessage(position, context, agentDetails);
         const debateHistory: ChatCompletionMessageParam[] = [{ role: "system", content: systemMessage }];
         
+        // Helper function to send moderator messages
+        const sendModeratorMessage = (content: string) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: MODERATOR_NAME, content })}\n\n`));
+        };
+
+        // Moderator introduces the debate
+        sendModeratorMessage(`Welcome to our debate on the topic: "${position}". I'll be your moderator for this discussion. Let's begin by introducing our participants:`);
+
+        // Moderator introduces each agent
+        for (const agent of agentDetails) {
+          sendModeratorMessage(`${agent.name}: ${agent.personality}. Their stance is ${agent.stance} the position.`);
+        }
+
         // Opening statements
+        sendModeratorMessage("Now, let's hear opening statements from each participant.");
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
+          sendModeratorMessage(`${currentAgent.name}, please provide your opening statement.`);
+
           const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
 
@@ -130,19 +148,17 @@ export async function conductDebateStream(position: string, context: string | un
 
           debateHistory.push({ role: "assistant", content: fullContent });
           
-          const endStatement = `End of ${currentAgent.name}'s opening statement.`;
-          debateHistory.push({ role: "user", content: endStatement });
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endStatement })}\n\n`));
+          sendModeratorMessage(`Thank you, ${currentAgent.name}.`);
         }
 
         // Debate rounds
         for (let round = 0; round < DEBATE_ROUNDS; round++) {
-          const roundStart = `Starting debate round ${round + 1}.`;
-          debateHistory.push({ role: "user", content: roundStart });
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: roundStart })}\n\n`));
+          sendModeratorMessage(`We're now moving to debate round ${round + 1}.`);
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
+            sendModeratorMessage(`${currentAgent.name}, it's your turn to respond.`);
+
             const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
@@ -152,20 +168,18 @@ export async function conductDebateStream(position: string, context: string | un
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
-            const endTurn = `End of ${currentAgent.name}'s turn in round ${round + 1}.`;
-            debateHistory.push({ role: "user", content: endTurn });
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endTurn })}\n\n`));
+            sendModeratorMessage(`Thank you, ${currentAgent.name}.`);
           }
         }
 
         // Concluding statements
         if (CONCLUDING_STATEMENTS) {
-          const concludingStart = `Starting concluding statements.`;
-          debateHistory.push({ role: "user", content: concludingStart });
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: concludingStart })}\n\n`));
+          sendModeratorMessage(`We've now reached the concluding statements portion of our debate.`);
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
+            sendModeratorMessage(`${currentAgent.name}, please provide your concluding statement.`);
+
             const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
@@ -175,10 +189,11 @@ export async function conductDebateStream(position: string, context: string | un
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
-            const endStatement = `End of ${currentAgent.name}'s concluding statement.`;
-            debateHistory.push({ role: "user", content: endStatement });
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "user", content: endStatement })}\n\n`));
+            sendModeratorMessage(`Thank you, ${currentAgent.name}, for your concluding statement.`);
           }
+
+          // Moderator closes the debate
+          sendModeratorMessage("This concludes our debate. Thank you to all our participants for their insightful contributions.");
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));

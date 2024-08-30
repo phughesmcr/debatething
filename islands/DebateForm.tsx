@@ -3,6 +3,7 @@ import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
 import { validateDebateInput } from "../lib/inputValidation.ts";
 import { sanitizeInput } from "../lib/inputSanitizer.ts";
+import { MODERATOR_NAME } from "../lib/debate.ts";
 
 const trimSystemMessage = (content: string): string => {
   if (content.includes('[SYSTEM]')) {
@@ -206,7 +207,7 @@ export default function DebateForm() {
 
   const isAgentMessage = (index: number) => {
     const message = debate[index];
-    return agentDetails.some(agent => agent.name === message.role);
+    return message.role === MODERATOR_NAME || agentDetails.some(agent => agent.name === message.role);
   };
 
   const getNextPlayableIndex = (currentIndex: number) => {
@@ -337,12 +338,13 @@ export default function DebateForm() {
   const ensureAudioSynthesized = async (index: number): Promise<boolean> => {
     if (index < debate.length) {
       const message = debate[index];
-      const agent = agentDetails.find(agent => agent.name === message.role);
-      console.log(`Checking synthesis for index: ${index}, agent: ${agent?.name}, voice: ${agent?.voice}`);
-      if (agent?.voice && (!audioRefs.current[index] || !synthesizedAudios.has(index))) {
+      let voice = message.role === MODERATOR_NAME ? "nova" : agentDetails.find(agent => agent.name === message.role)?.voice;
+      if (!voice) voice = "nova";
+      console.log(`Checking synthesis for index: ${index}, role: ${message.role}, voice: ${voice}`);
+      if (voice && (!audioRefs.current[index] || !synthesizedAudios.has(index))) {
         console.log(`Attempting to synthesize audio for index: ${index}`);
         try {
-          await handleVoiceSynth(index, message.content, agent.voice, true);
+          await handleVoiceSynth(index, message.content, voice, true);
           // Add a small delay to ensure the audio is loaded
           await new Promise(resolve => setTimeout(resolve, 100));
           if (!audioRefs.current[index]) {
@@ -353,8 +355,6 @@ export default function DebateForm() {
           console.error(`Failed to synthesize audio for index: ${index}`, error);
           return false;
         }
-      } else if (!agent?.voice) {
-        console.warn(`No voice found for agent at index: ${index}`);
       } else {
         console.log(`Audio already exists for index: ${index}, skipping synthesis`);
       }
@@ -401,7 +401,8 @@ export default function DebateForm() {
         audio.addEventListener('ended', () => {
           console.log(`Audio playback ended for index: ${index}`);
           if (!isFullDebatePlayingRef.current) {
-            setPlaying          }
+            setPlayingAudio(null);
+          }
         });
       } else {
         console.log(`Audio already exists for index: ${index}, skipping synthesis`);
