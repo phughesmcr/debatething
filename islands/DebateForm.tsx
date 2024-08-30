@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState, useEffect, useRef } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
 import { Personality, getRandomPersonalities } from "../lib/personalities.ts";
 import { validateDebateInput } from "../lib/inputValidation.ts";
@@ -21,6 +21,8 @@ export default function DebateForm() {
   const [context, setContext] = useState("");
   const [hasDuplicateNames, setHasDuplicateNames] = useState(false);
   const [uuid, setUuid] = useState("");
+  const [isDebating, setIsDebating] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     // Generate a new UUID for each session
@@ -79,6 +81,14 @@ export default function DebateForm() {
     });
   };
 
+  const cancelDebate = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsDebating(false);
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setErrors([]);
@@ -110,14 +120,17 @@ export default function DebateForm() {
 
     setLoading(true);
     setDebate([]);
+    setIsDebating(true);
 
     try {
+      abortControllerRef.current = new AbortController();
       const response = await fetch("/api/debate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(input),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -162,10 +175,16 @@ export default function DebateForm() {
         }
       }
     } catch (error) {
-      console.error("Error:", error);
-      setErrors(["An error occurred while fetching the debate results"]);
+      if (error.name === 'AbortError') {
+        console.log('Debate cancelled');
+      } else {
+        console.error("Error:", error);
+        setErrors(["An error occurred while fetching the debate results"]);
+      }
     } finally {
       setLoading(false);
+      setIsDebating(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -278,13 +297,24 @@ export default function DebateForm() {
           </div>
         )}
 
-        <button 
-          type="submit" 
-          class="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
-          disabled={loading || hasDuplicateNames}
-        >
-          {loading ? "Debating..." : "Start Debate"}
-        </button>
+        <div class="flex space-x-4">
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50" 
+            disabled={loading || hasDuplicateNames || isDebating}
+          >
+            {loading ? "Debating..." : "Start Debate"}
+          </button>
+          {isDebating && (
+            <button 
+              type="button" 
+              onClick={cancelDebate}
+              class="px-4 py-2 bg-red-500 text-white rounded"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
 
       {debate.length > 0 && (
