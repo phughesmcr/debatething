@@ -7,6 +7,7 @@ import { sanitizeInput } from "../lib/inputSanitizer.ts";
 interface AgentDetails {
   name: string;
   personality: string;
+  stance: "for" | "against" | "undecided";
 }
 
 const trimSystemMessage = (content: string): string => {
@@ -27,12 +28,48 @@ export default function DebateForm() {
   const [hasDuplicateNames, setHasDuplicateNames] = useState(false);
 
   useEffect(() => {
-    setAgentDetails(getRandomPersonalities(clamp(numAgents, 2, 4)));
+    const initialAgents = getRandomPersonalities(clamp(numAgents, 2, 4)).map((p, index) => ({
+      ...p,
+      stance: index === 0 ? "for" : index === 1 ? "against" : "undecided"
+    }));
+    setAgentDetails(initialAgents);
   }, [numAgents]);
 
   const checkDuplicateNames = (details: Personality[]): boolean => {
     const names = details.map(agent => agent.name.toLowerCase());
     return new Set(names).size !== names.length;
+  };
+
+  const adjustAgentStances = (agents: AgentDetails[]): AgentDetails[] => {
+    const forAgent = agents.find(agent => agent.stance === "for");
+    const againstAgent = agents.find(agent => agent.stance === "against");
+
+    if (forAgent && againstAgent) {
+      return agents;
+    }
+
+    const adjustedAgents = [...agents];
+
+    if (!forAgent) {
+      const undecidedIndex = adjustedAgents.findIndex(agent => agent.stance === "undecided");
+      if (undecidedIndex !== -1) {
+        adjustedAgents[undecidedIndex].stance = "for";
+      } else {
+        adjustedAgents[0].stance = "for";
+      }
+    }
+
+    if (!againstAgent) {
+      const undecidedIndex = adjustedAgents.findIndex(agent => agent.stance === "undecided");
+      if (undecidedIndex !== -1) {
+        adjustedAgents[undecidedIndex].stance = "against";
+      } else {
+        const lastIndex = adjustedAgents.length - 1;
+        adjustedAgents[lastIndex].stance = "against";
+      }
+    }
+
+    return adjustedAgents;
   };
 
   const handleAgentDetailChange = (index: number, field: keyof Personality, value: string) => {
@@ -53,13 +90,16 @@ export default function DebateForm() {
       return;
     }
 
+    const adjustedAgentDetails = adjustAgentStances(agentDetails);
+
     const input = {
       position: sanitizeInput(position),
       context: sanitizeInput(context),
       numAgents: clamp(numAgents, 2, 4),
-      agentDetails: agentDetails.map(agent => ({
+      agentDetails: adjustedAgentDetails.map(agent => ({
         name: sanitizeInput(agent.name),
-        personality: sanitizeInput(agent.personality)
+        personality: sanitizeInput(agent.personality),
+        stance: agent.stance
       }))
     };
     const validationResult = validateDebateInput(input);
@@ -78,7 +118,7 @@ export default function DebateForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ position, context, numAgents: clamp(numAgents, 2, 4), agentDetails }),
+        body: JSON.stringify(input),
       });
 
       if (!response.ok) {
@@ -205,6 +245,20 @@ export default function DebateForm() {
                       maxLength={120}
                       required
                     />
+                  </div>
+                  <div class="mb-2">
+                    <label htmlFor={`agent-stance-${index}`} class="block mb-1">Stance:</label>
+                    <select
+                      id={`agent-stance-${index}`}
+                      value={agent.stance}
+                      onChange={(e) => handleAgentDetailChange(index, "stance", (e.target as HTMLSelectElement).value)}
+                      class="w-full p-2 border rounded"
+                      required
+                    >
+                      <option value="for">For</option>
+                      <option value="against">Against</option>
+                      <option value="undecided">Undecided</option>
+                    </select>
                   </div>
                 </div>
               ))}

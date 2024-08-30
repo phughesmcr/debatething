@@ -14,11 +14,12 @@ const RETRY_DELAY = 1000; // 1 second
 interface AgentDetails {
   name: string;
   personality: string;
+  stance: "for" | "against" | "undecided";
 }
 
 const createSystemMessage = (position: string, context: string | undefined, agentDetails: AgentDetails[]) => {
   const agentDescriptions = agentDetails.map((agent, index) => 
-    `Agent ${index + 1} (${agent.name}): ${agent.personality}`
+    `Agent ${index + 1} (${agent.name}): ${agent.personality}. Stance: ${agent.stance} the position.`
   ).join("\n");
   
   let message = `You are participating in a debate about the following position: "${position}". `;
@@ -118,7 +119,7 @@ export async function conductDebateStream(position: string, context: string | un
         // Opening statements
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
-          const userPrompt = `You are ${currentAgent.name}. Provide your opening statement on the topic. Remember to stay in character as described in your personality.`;
+          const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
 
           const messages: ChatCompletionMessageParam[] = [...debateHistory];
@@ -140,7 +141,7 @@ export async function conductDebateStream(position: string, context: string | un
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
-            const userPrompt = `You are ${currentAgent.name}. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character and maintain your perspective.`;
+            const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];

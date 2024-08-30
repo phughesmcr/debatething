@@ -1,6 +1,7 @@
 export interface Personality {
     name: string;
     personality: string;
+    stance?: "for" | "against" | "undecided";
   }
   
   export const personalities: Personality[] = [
