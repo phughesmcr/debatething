@@ -1,4 +1,4 @@
-import DebateForm from "../islands/DebateForm.tsx";
+import DebateForm from "islands/DebateForm.tsx";
 
 export default function Home() {
   return (

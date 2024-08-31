@@ -1,10 +1,11 @@
 import { useState } from "preact/hooks";
-import { personalities, Personality } from "../lib/personalities.ts";
-import { sanitizeInput } from "lib/inputSanitizer.ts";
+import { personalities, Personality } from "lib/debate/personalities.ts";
+import { sanitizeInput } from "lib/utils.ts";
 import {
   MAX_NAME_LENGTH,
   MAX_PERSONALITY_LENGTH,
-} from "lib/inputValidation.ts";
+} from "lib/debate/inputValidation.ts";
+import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
 
 interface AgentSelectorProps {
   agents: Required<Personality>[];
@@ -20,7 +21,7 @@ export default function AgentSelector(
     newAgents[index] = {
       ...personality,
       stance: newAgents[index].stance,
-      voice: personality.voice || newAgents[index].voice || "alloy",
+      voice: personality.voice || newAgents[index].voice || DEFAULT_VOICE,
     };
     onAgentChange(newAgents);
   };

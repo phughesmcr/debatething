@@ -1,3 +1,8 @@
+export const sanitizeInput = (input: string): string =>
+  input
+    .replace(/<[^>]*>?/gm, "")
+    .trim();
+
 export const cleanContent = (content: string) =>
   content
     ?.replaceAll("\r", "")

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { clamp } from "lib/utils.ts";
-import { getRandomPersonalities, Personality } from "../lib/personalities.ts";
+import {
+  getRandomPersonalities,
+  Personality,
+} from "lib/debate/personalities.ts";
 import {
   MAX_AGENTS,
   MAX_DEBATE_CONTEXT_LENGTH,
@@ -9,9 +12,9 @@ import {
   MIN_AGENTS,
   MIN_DEBATE_ROUNDS,
   validateDebateInput,
-} from "../lib/inputValidation.ts";
-import { sanitizeInput } from "../lib/inputSanitizer.ts";
-import { MODERATOR_NAME } from "../lib/debate.ts";
+} from "lib/debate/inputValidation.ts";
+import { sanitizeInput } from "lib/utils.ts";
+import { MODERATOR_NAME } from "lib/debate/moderator.ts";
 import AgentSelector from "./AgentSelector.tsx";
 
 const trimSystemMessage = (content: string): string => {
@@ -26,9 +29,7 @@ export default function DebateForm() {
   const [numAgents, setNumAgents] = useState(2);
   const [numDebateRounds, setNumDebateRounds] = useState(2);
   const [agentDetails, setAgentDetails] = useState<Required<Personality>[]>([]);
-  const [debate, setDebate] = useState<
-    Array<{ role: string; content: string }>
-  >([]);
+  const [debate, setDebate] = useState<Array<{ role: string; content: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [context, setContext] = useState("");
@@ -38,17 +39,13 @@ export default function DebateForm() {
   const [isDebating, setIsDebating] = useState(false);
   const [isDebateFinished, setIsDebateFinished] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [voiceSynthLoading, setVoiceSynthLoading] = useState<
-    { [key: number]: boolean }
-  >({});
+  const [voiceSynthLoading, setVoiceSynthLoading] = useState<{ [key: number]: boolean }>({});
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const audioRefs = useRef<{ [key: number]: HTMLAudioElement | null }>({});
   const [isFullDebatePlaying, setIsFullDebatePlaying] = useState(false);
   const isFullDebatePlayingRef = useRef(false);
   const fullDebateTimeoutRef = useRef<number | null>(null);
-  const [synthesizedAudios, setSynthesizedAudios] = useState<Set<number>>(
-    new Set(),
-  );
+  const [synthesizedAudios, setSynthesizedAudios] = useState<Set<number>>(new Set());
   const [lastPlayedIndex, setLastPlayedIndex] = useState<number | null>(null);
   const [lastPlayedPosition, setLastPlayedPosition] = useState<number>(0);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);

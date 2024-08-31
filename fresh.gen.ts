@@ -10,7 +10,7 @@ import * as $api_voicesynth from "./routes/api/voicesynth.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AgentSelector from "./islands/AgentSelector.tsx";
 import * as $DebateForm from "./islands/DebateForm.tsx";
-import { type Manifest } from "$fresh/server.ts";
+import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
   routes: {

@@ -1,10 +1,4 @@
-export type VoiceType =
-  | "alloy"
-  | "echo"
-  | "fable"
-  | "onyx"
-  | "nova"
-  | "shimmer";
+import type { VoiceType } from "routes/api/voicesynth.tsx";
 
 export interface Personality {
   name: string;
@@ -121,6 +115,48 @@ export const personalities: Personality[] = [
     personality:
       "Veteran factory worker with keen observations on economic shifts. Contributes valuable first-hand perspectives to discussions on labor, technology, and social mobility, bridging theory and practice.",
     voice: "onyx",
+  },
+  {
+    name: "Futurist Faye",
+    personality:
+      "Transhumanist researcher exploring the ethical implications of human enhancement. Balances technological optimism with critical analysis of potential societal impacts, sparking thought-provoking debates on progress and human nature.",
+    voice: "alloy",
+  },
+  {
+    name: "Indigenous Iluka",
+    personality:
+      "Aboriginal rights activist and traditional knowledge keeper. Offers unique perspectives on environmental stewardship, community-based governance, and the intersection of ancient wisdom with modern challenges.",
+    voice: "echo",
+  },
+  {
+    name: "Refugee Rania",
+    personality:
+      "Former journalist turned humanitarian worker. Provides first-hand insights into global crises, international relations, and the human cost of conflicts, enriching debates with compassionate yet pragmatic viewpoints.",
+    voice: "nova",
+  },
+  {
+    name: "Bioethicist Bianca",
+    personality:
+      "Molecular biologist specializing in CRISPR technology and bioethics. Navigates the complex intersection of scientific advancement, ethical considerations, and policy-making in cutting-edge biological research.",
+    voice: "shimmer",
+  },
+  {
+    name: "Urban Planner Ulysses",
+    personality:
+      "Visionary city designer with expertise in sustainable development. Brings a systems-thinking approach to debates on urbanization, social equity, and environmental challenges in rapidly growing metropolises.",
+    voice: "fable",
+  },
+  {
+    name: "Digital Nomad Daphne",
+    personality:
+      "Cybersecurity expert living a location-independent lifestyle. Offers unique perspectives on digital privacy, the future of work, and the impact of technology on cultural exchange and global citizenship.",
+    voice: "nova",
+  },
+  {
+    name: "Agronomist Aisha",
+    personality:
+      "Vertical farming pioneer from a water-scarce region. Combines traditional agricultural knowledge with cutting-edge technology, contributing valuable insights to discussions on food security, climate adaptation, and sustainable resource management.",
+    voice: "shimmer",
   },
 ];
 

@@ -1,14 +1,4 @@
-interface AgentDetails {
-  name: string;
-  personality: string;
-}
-
-interface DebateInput {
-  position: string;
-  numAgents: number;
-  agentDetails: AgentDetails[];
-  numDebateRounds: number;
-}
+import type { DebateRequest } from "routes/api/debate.tsx";
 
 export const MIN_AGENTS = 2;
 export const MAX_AGENTS = 4;
@@ -19,9 +9,12 @@ export const MAX_NAME_LENGTH = 32;
 export const MAX_POSITION_LENGTH = 128;
 export const MAX_PERSONALITY_LENGTH = 264;
 
-export function validateDebateInput(
-  input: DebateInput,
-): { valid: boolean; errors: string[] } {
+export interface InputValidationResponse {
+  valid: boolean;
+  errors: string[];
+}
+
+export function validateDebateInput(input: DebateRequest): InputValidationResponse {
   const errors: string[] = [];
 
   // Validate position

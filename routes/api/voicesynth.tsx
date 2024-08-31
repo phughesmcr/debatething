@@ -2,34 +2,87 @@ import type { Handlers } from "$fresh/server.ts";
 import { agent } from "lib/agent.ts";
 import { encodeBase64 } from "@std/encoding";
 
-type Voice = "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+/**
+ * @module voicesynth
+ * @description This module provides a way to interact with the OpenAI TTS API.
+ */
 
+/** The type of voices available for synthesis. */
+export type VoiceType =
+  | "alloy"
+  | "echo"
+  | "fable"
+  | "onyx"
+  | "nova"
+  | "shimmer";
+
+/** The list of voices available for synthesis. */
+export const voiceTypes: VoiceType[] = [
+  "alloy",
+  "echo",
+  "fable",
+  "onyx",
+  "nova",
+  "shimmer",
+] as const;
+
+/** The default voice to use for synthesis. */
+export const DEFAULT_VOICE: VoiceType = "alloy";
+
+/** The default TTS model to use for synthesis. */
+export const DEFAULT_VOICE_MODEL: string = "tts-1";
+
+/** The request object for the voice synthesis API. */
 export interface VoiceSynthRequest {
+  /** The text of the message to be synthesized. */
   message: string;
-  voice?: Voice;
+  /**
+   * The voice to use for synthesis.
+   * @default "alloy"
+   */
+  voice?: VoiceType;
 }
 
+/** The response object for the voice synthesis API. */
 export type VoiceSynthResponse = {
   audio: string;
   error: string | null;
 };
 
-const isValidVoice = (voice: string): voice is Voice =>
-  ["alloy", "echo", "fable", "onyx", "nova", "shimmer"].includes(voice);
+/** Type guard to check if a voice is valid. */
+export const isValidVoice = (voice: string): voice is VoiceType =>
+  voiceTypes.includes(voice as VoiceType);
 
+/** Type guard to check if a voice synthesis request is valid. */
+export const isValidVoiceSynthRequest = (
+  req: VoiceSynthRequest,
+): req is VoiceSynthRequest => {
+  return typeof req.message === "string" && req.message.trim().length > 0 &&
+    (req.voice === undefined ||
+      (typeof req.voice === "string" && isValidVoice(req.voice)));
+};
+
+export const responseToBase64 = async (response: Response): Promise<string> => {
+  const audioBuffer = await response.arrayBuffer();
+  return encodeBase64(new Uint8Array(audioBuffer));
+};
+
+/** The route handler for the voice synthesis API. */
 export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
   async POST(req, _ctx) {
     const props = await req.json() as VoiceSynthRequest;
 
-    if (!props || !props.message) {
-      const response: VoiceSynthResponse = {
-        audio: "", // Empty string instead of ArrayBuffer
-        error: !props ? "No props" : "No message",
-      };
-      return new Response(JSON.stringify(response), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (!isValidVoiceSynthRequest(props)) {
+      return new Response(
+        JSON.stringify({
+          audio: "",
+          error: "Invalid voice synthesis request.",
+        } as VoiceSynthResponse),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     try {
@@ -37,15 +90,14 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         throw new Error("OpenAI agent is not properly configured");
       }
 
-      if (!props.voice) {
-        props.voice = "alloy";
-      }
-
-      const voice: Voice = isValidVoice(props.voice) ? props.voice : "alloy";
+      props.voice = props.voice || DEFAULT_VOICE;
+      const voice: VoiceType = isValidVoice(props.voice)
+        ? props.voice
+        : DEFAULT_VOICE;
 
       const audioResponse = await agent.audio.speech.create({
-        model: "tts-1",
-        voice,
+        model: DEFAULT_VOICE_MODEL,
+        voice: voice.toLowerCase().trim() as VoiceType,
         input: props.message,
       });
 
@@ -53,14 +105,16 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         throw new Error("No response from speech service");
       }
 
-      const audioBuffer = await audioResponse.arrayBuffer();
-      const audioBase64 = encodeBase64(new Uint8Array(audioBuffer));
-      const response: VoiceSynthResponse = { audio: audioBase64, error: null };
-
-      return new Response(JSON.stringify(response), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          audio: await responseToBase64(audioResponse),
+          error: null,
+        } as VoiceSynthResponse),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     } catch (error) {
       console.error("Error in voice synthesis:", error);
 
@@ -69,15 +123,16 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         errorMessage = error.message;
       }
 
-      const response: VoiceSynthResponse = {
-        audio: "", // Empty string instead of ArrayBuffer
-        error: errorMessage,
-      };
-
-      return new Response(JSON.stringify(response), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          audio: "",
+          error: errorMessage,
+        } as VoiceSynthResponse),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
   },
 };

@@ -42,5 +42,8 @@
     "jsxImportSource": "preact"
   },
   "nodeModulesDir": true,
-  "unstable": ["kv"]
+  "unstable": ["kv"],
+  "fmt": {
+    "lineWidth": 120
+  }
 }
