@@ -1,6 +1,7 @@
 import { agent } from "./agent.ts";
 import type { OpenAI } from "openai";
-type ChatCompletionMessageParam = OpenAI.Chat.Completions.ChatCompletionMessageParam;
+type ChatCompletionMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
 const MODEL = "gpt-4o-mini";
 const MAX_TOKENS = 1024;
@@ -18,18 +19,26 @@ interface AgentDetails {
   uuid: string;
 }
 
-const createSystemMessage = (position: string, context: string | undefined, agentDetails: AgentDetails[]) => {
-  const agentDescriptions = agentDetails.map((agent, index) => 
-    `Participant ${index + 1} (${agent.name}): ${agent.personality}. Stance: "${agent.stance}" the position.`
+const createSystemMessage = (
+  position: string,
+  context: string | undefined,
+  agentDetails: AgentDetails[],
+) => {
+  const agentDescriptions = agentDetails.map((agent, index) =>
+    `Participant ${
+      index + 1
+    } (${agent.name}): ${agent.personality}. Stance: "${agent.stance}" the position.`
   ).join("\n");
-  
-  let message = `You are participating in a debate about the following position: "${position}". `;
-  
+
+  let message =
+    `You are participating in a debate about the following position: "${position}". `;
+
   if (context && context.trim()) {
     message += `\nContext for the debate: ${context}\n\n`;
   }
-  
-  message += `There are ${agentDetails.length} participants in this debate, each with a unique perspective:
+
+  message +=
+    `There are ${agentDetails.length} participants in this debate, each with a unique perspective:
 
 ${agentDescriptions}
 
@@ -52,7 +61,7 @@ const trimAgentPrefix = (content: string, agentName: string): string => {
     `${agentName} here,`,
     `This is ${agentName},`,
     `${agentName}:`,
-    `${agentName},`
+    `${agentName},`,
   ];
 
   for (const prefix of prefixes) {
@@ -68,7 +77,13 @@ const trimAgentPrefix = (content: string, agentName: string): string => {
   return content;
 };
 
-async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller: ReadableStreamDefaultController<Uint8Array>, encoder: TextEncoder, agentName: string, uuid: string) {
+async function makeAPIRequest(
+  messages: ChatCompletionMessageParam[],
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  agentName: string,
+  uuid: string,
+) {
   let retries = 0;
   while (retries < MAX_RETRIES) {
     try {
@@ -85,17 +100,34 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
 
       let fullContent = "";
       for await (const part of response) {
-        const content = trimAgentPrefix(part.choices[0]?.delta?.content || '', agentName);
+        const content = trimAgentPrefix(
+          part.choices[0]?.delta?.content || "",
+          agentName,
+        );
         const finishReason = part.choices[0]?.finish_reason;
 
         if (content) {
           fullContent += content;
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: agentName, content })}\n\n`));
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ role: agentName, content })}\n\n`,
+            ),
+          );
         }
 
         if (finishReason) {
           if (finishReason !== "stop") {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "system", content: `[Warning: Response finished due to ${finishReason}]` })}\n\n`));
+            controller.enqueue(
+              encoder.encode(
+                `data: ${
+                  JSON.stringify({
+                    role: "system",
+                    content:
+                      `[Warning: Response finished due to ${finishReason}]`,
+                  })
+                }\n\n`,
+              ),
+            );
           }
           break;
         }
@@ -103,10 +135,14 @@ async function makeAPIRequest(messages: ChatCompletionMessageParam[], controller
 
       return fullContent;
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Rate limit exceeded")) {
+      if (
+        error instanceof Error && error.message.includes("Rate limit exceeded")
+      ) {
         if (retries < MAX_RETRIES - 1) {
           retries++;
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retries));
+          await new Promise((resolve) =>
+            setTimeout(resolve, RETRY_DELAY * retries)
+          );
           continue;
         }
       }
@@ -217,10 +253,13 @@ const moderatorResponses = {
 function createRandomResponseGenerator() {
   const usedResponses = new Set<string>();
 
-  return function getRandomResponse(category: keyof typeof moderatorResponses, replacements: Record<string, string> = {}): string {
+  return function getRandomResponse(
+    category: keyof typeof moderatorResponses,
+    replacements: Record<string, string> = {},
+  ): string {
     const responses = moderatorResponses[category];
-    let unusedResponses = responses.filter(r => !usedResponses.has(r));
-    
+    let unusedResponses = responses.filter((r) => !usedResponses.has(r));
+
     if (unusedResponses.length === 0) {
       usedResponses.clear();
       unusedResponses = responses;
@@ -232,110 +271,178 @@ function createRandomResponseGenerator() {
 
     return Object.entries(replacements).reduce(
       (str, [key, value]) => str.replace(`{${key}}`, value),
-      selectedResponse
+      selectedResponse,
     );
   };
 }
 
-export function conductDebateStream(position: string, context: string | undefined, numAgents: number, agentDetails: AgentDetails[], uuid: string, numDebateRounds: number) {
+export function conductDebateStream(
+  position: string,
+  context: string | undefined,
+  numAgents: number,
+  agentDetails: AgentDetails[],
+  uuid: string,
+  numDebateRounds: number,
+) {
   const encoder = new TextEncoder();
   const getRandomResponse = createRandomResponseGenerator();
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const systemMessage = createSystemMessage(position, context, agentDetails);
-        const debateHistory: ChatCompletionMessageParam[] = [{ role: "system", content: systemMessage }];
-        
+        const systemMessage = createSystemMessage(
+          position,
+          context,
+          agentDetails,
+        );
+        const debateHistory: ChatCompletionMessageParam[] = [{
+          role: "system",
+          content: systemMessage,
+        }];
+
         // Helper function to send moderator messages
         const sendModeratorMessage = (content: string) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: MODERATOR_NAME, content })}\n\n`));
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ role: MODERATOR_NAME, content })}\n\n`,
+            ),
+          );
         };
 
         // Moderator introduces the debate
-        sendModeratorMessage(getRandomResponse('welcome', { position }));
+        sendModeratorMessage(getRandomResponse("welcome", { position }));
 
         // Moderator introduces each agent
         for (const agent of agentDetails) {
-          sendModeratorMessage(getRandomResponse('introduction', { 
-            name: agent.name, 
-            personality: agent.personality, 
-            stance: agent.stance 
+          sendModeratorMessage(getRandomResponse("introduction", {
+            name: agent.name,
+            personality: agent.personality,
+            stance: agent.stance,
           }));
         }
 
         // Opening statements
-        sendModeratorMessage("Now, let's hear opening statements from each participant. ");
+        sendModeratorMessage(
+          "Now, let's hear opening statements from each participant. ",
+        );
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
-          sendModeratorMessage(getRandomResponse('openingStatement', { name: currentAgent.name }));
+          sendModeratorMessage(
+            getRandomResponse("openingStatement", { name: currentAgent.name }),
+          );
 
-          const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
+          const userPrompt =
+            `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
 
           const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-          const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
+          const fullContent = await makeAPIRequest(
+            messages,
+            controller,
+            encoder,
+            currentAgent.name,
+            uuid,
+          );
 
           debateHistory.push({ role: "assistant", content: fullContent });
-          
-          sendModeratorMessage(getRandomResponse('thankYou', { name: currentAgent.name }));
+
+          sendModeratorMessage(
+            getRandomResponse("thankYou", { name: currentAgent.name }),
+          );
         }
 
         // Debate rounds
         for (let round = 0; round < numDebateRounds; round++) {
-          sendModeratorMessage(getRandomResponse('debateRound', { round: (round + 1).toString() }));
+          sendModeratorMessage(
+            getRandomResponse("debateRound", { round: (round + 1).toString() }),
+          );
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
-            sendModeratorMessage(getRandomResponse('response', { name: currentAgent.name }));
+            sendModeratorMessage(
+              getRandomResponse("response", { name: currentAgent.name }),
+            );
 
-            const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
+            const userPrompt =
+              `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
+            const fullContent = await makeAPIRequest(
+              messages,
+              controller,
+              encoder,
+              currentAgent.name,
+              uuid,
+            );
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
-            sendModeratorMessage(getRandomResponse('thankYou', { name: currentAgent.name }));
+            sendModeratorMessage(
+              getRandomResponse("thankYou", { name: currentAgent.name }),
+            );
           }
         }
 
         // Concluding statements
         if (CONCLUDING_STATEMENTS) {
-          sendModeratorMessage(`We've now reached the concluding statements portion of our debate. `);
+          sendModeratorMessage(
+            `We've now reached the concluding statements portion of our debate. `,
+          );
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
-            sendModeratorMessage(getRandomResponse('concludingStatement', { name: currentAgent.name }));
+            sendModeratorMessage(
+              getRandomResponse("concludingStatement", {
+                name: currentAgent.name,
+              }),
+            );
 
-            const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
+            const userPrompt =
+              `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];
 
-            const fullContent = await makeAPIRequest(messages, controller, encoder, currentAgent.name, uuid);
+            const fullContent = await makeAPIRequest(
+              messages,
+              controller,
+              encoder,
+              currentAgent.name,
+              uuid,
+            );
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
-            sendModeratorMessage(getRandomResponse('thankYou', { name: currentAgent.name }));
+            sendModeratorMessage(
+              getRandomResponse("thankYou", { name: currentAgent.name }),
+            );
           }
 
           // Moderator closes the debate
-          sendModeratorMessage(getRandomResponse('closing'));
+          sendModeratorMessage(getRandomResponse("closing"));
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (error) {
         console.error("Error in conductDebateStream:", error);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ role: "system", content: `Error: ${error.message}` })}\n\n`));
+        controller.enqueue(
+          encoder.encode(
+            `data: ${
+              JSON.stringify({
+                role: "system",
+                content: `Error: ${error.message}`,
+              })
+            }\n\n`,
+          ),
+        );
         controller.error(error);
       } finally {
         controller.close();
       }
-    }
+    },
   });
 
   return stream;

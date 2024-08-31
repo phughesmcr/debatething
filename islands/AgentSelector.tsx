@@ -1,26 +1,35 @@
 import { useState } from "preact/hooks";
 import { personalities, Personality } from "../lib/personalities.ts";
 import { sanitizeInput } from "lib/inputSanitizer.ts";
-import { MAX_NAME_LENGTH, MAX_PERSONALITY_LENGTH } from "lib/inputValidation.ts";
+import {
+  MAX_NAME_LENGTH,
+  MAX_PERSONALITY_LENGTH,
+} from "lib/inputValidation.ts";
 
 interface AgentSelectorProps {
   agents: Required<Personality>[];
   onAgentChange: (agents: Required<Personality>[]) => void;
 }
 
-export default function AgentSelector({ agents, onAgentChange }: AgentSelectorProps) {
+export default function AgentSelector(
+  { agents, onAgentChange }: AgentSelectorProps,
+) {
   const [showCustomAgents, setShowCustomAgents] = useState(false);
   const handlePersonalitySelect = (personality: Personality, index: number) => {
     const newAgents = [...agents];
     newAgents[index] = {
       ...personality,
       stance: newAgents[index].stance,
-      voice: personality.voice  || newAgents[index].voice || "alloy"
+      voice: personality.voice || newAgents[index].voice || "alloy",
     };
     onAgentChange(newAgents);
   };
 
-  const handleAgentDetailChange = (index: number, field: keyof Personality, value: string) => {
+  const handleAgentDetailChange = (
+    index: number,
+    field: keyof Personality,
+    value: string,
+  ) => {
     const newAgents = [...agents];
     newAgents[index] = { ...newAgents[index], [field]: value };
     onAgentChange(newAgents);
@@ -37,57 +46,90 @@ export default function AgentSelector({ agents, onAgentChange }: AgentSelectorPr
         {agents.map((agent, index) => (
           <div key={index} class="border rounded p-4">
             <h4 class="text-md font-semibold mb-2">Participant {index + 1}</h4>
-            {showCustomAgents ? (
-              <>
+            {showCustomAgents
+              ? (
+                <>
+                  <div class="mb-2">
+                    <label htmlFor={`agent-name-${index}`} class="block mb-1">
+                      Name:
+                    </label>
+                    <input
+                      id={`agent-name-${index}`}
+                      type="text"
+                      value={agent.name}
+                      onInput={(e) =>
+                        handleAgentDetailChange(
+                          index,
+                          "name",
+                          sanitizeInput((e.target as HTMLInputElement).value),
+                        )}
+                      class="w-full p-2 border rounded"
+                      maxLength={MAX_NAME_LENGTH}
+                      required
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label
+                      htmlFor={`agent-personality-${index}`}
+                      class="block mb-1"
+                    >
+                      Personality:
+                    </label>
+                    <textarea
+                      id={`agent-personality-${index}`}
+                      value={agent.personality}
+                      onInput={(e) =>
+                        handleAgentDetailChange(
+                          index,
+                          "personality",
+                          (e.target as HTMLTextAreaElement).value,
+                        )}
+                      class="w-full p-2 border rounded"
+                      maxLength={MAX_PERSONALITY_LENGTH}
+                      required
+                    />
+                  </div>
+                </>
+              )
+              : (
                 <div class="mb-2">
-                  <label htmlFor={`agent-name-${index}`} class="block mb-1">Name:</label>
-                  <input
-                    id={`agent-name-${index}`}
-                    type="text"
-                    value={agent.name}
-                    onInput={(e) => handleAgentDetailChange(index, "name", sanitizeInput((e.target as HTMLInputElement).value))}
-                    class="w-full p-2 border rounded"
-                    maxLength={MAX_NAME_LENGTH}
-                    required
-                  />
-                </div>
-                <div class="mb-2">
-                  <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
-                  <textarea
+                  <label
+                    htmlFor={`agent-personality-${index}`}
+                    class="block mb-1"
+                  >
+                    Personality:
+                  </label>
+                  <select
                     id={`agent-personality-${index}`}
-                    value={agent.personality}
-                    onInput={(e) => handleAgentDetailChange(index, "personality", (e.target as HTMLTextAreaElement).value)}
+                    value={agent.name}
+                    onChange={(e) => {
+                      const selected = personalities.find((p) =>
+                        p.name === (e.target as HTMLSelectElement).value
+                      );
+                      if (selected) handlePersonalitySelect(selected, index);
+                    }}
                     class="w-full p-2 border rounded"
-                    maxLength={MAX_PERSONALITY_LENGTH}
                     required
-                  />
+                  >
+                    {personalities.map((p) => (
+                      <option key={p.name} value={p.name}>{p.name}</option>
+                    ))}
+                  </select>
                 </div>
-              </>
-            ) : (
-              <div class="mb-2">
-                <label htmlFor={`agent-personality-${index}`} class="block mb-1">Personality:</label>
-                <select
-                  id={`agent-personality-${index}`}
-                  value={agent.name}
-                  onChange={(e) => {
-                    const selected = personalities.find(p => p.name === (e.target as HTMLSelectElement).value);
-                    if (selected) handlePersonalitySelect(selected, index);
-                  }}
-                  class="w-full p-2 border rounded"
-                  required
-                >
-                  {personalities.map((p) => (
-                    <option key={p.name} value={p.name}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+              )}
             <div class="mb-2">
-              <label htmlFor={`agent-stance-${index}`} class="block mb-1">Stance:</label>
+              <label htmlFor={`agent-stance-${index}`} class="block mb-1">
+                Stance:
+              </label>
               <select
                 id={`agent-stance-${index}`}
                 value={agent.stance}
-                onChange={(e) => handleAgentDetailChange(index, "stance", (e.target as HTMLSelectElement).value)}
+                onChange={(e) =>
+                  handleAgentDetailChange(
+                    index,
+                    "stance",
+                    (e.target as HTMLSelectElement).value,
+                  )}
                 class="w-full p-2 border rounded"
                 required
               >
@@ -97,11 +139,18 @@ export default function AgentSelector({ agents, onAgentChange }: AgentSelectorPr
               </select>
             </div>
             <div class="mb-2">
-              <label htmlFor={`agent-voice-${index}`} class="block mb-1">Voice:</label>
+              <label htmlFor={`agent-voice-${index}`} class="block mb-1">
+                Voice:
+              </label>
               <select
                 id={`agent-voice-${index}`}
                 value={agent.voice}
-                onChange={(e) => handleAgentDetailChange(index, "voice", (e.target as HTMLSelectElement).value)}
+                onChange={(e) =>
+                  handleAgentDetailChange(
+                    index,
+                    "voice",
+                    (e.target as HTMLSelectElement).value,
+                  )}
                 class="w-full p-2 border rounded"
                 required
               >

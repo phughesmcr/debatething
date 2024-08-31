@@ -15,15 +15,29 @@ export const handler: Handlers = {
       });
     }
 
-    const { position, context, numAgents, agentDetails, uuid, numDebateRounds } = input;
+    const {
+      position,
+      context,
+      numAgents,
+      agentDetails,
+      uuid,
+      numDebateRounds,
+    } = input;
 
     try {
-      const stream = await conductDebateStream(position, context, numAgents, agentDetails, uuid, numDebateRounds);
+      const stream = await conductDebateStream(
+        position,
+        context,
+        numAgents,
+        agentDetails,
+        uuid,
+        numDebateRounds,
+      );
       if (!(stream instanceof ReadableStream)) {
         throw new Error("Invalid stream returned from conductDebateStream");
       }
       return new Response(stream, {
-        headers: { 
+        headers: {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
           "Connection": "keep-alive",
@@ -31,10 +45,13 @@ export const handler: Handlers = {
       });
     } catch (error) {
       console.error("Error conducting debate:", error);
-      return new Response(JSON.stringify({ error: "Failed to conduct debate" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Failed to conduct debate" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
   },
 };
