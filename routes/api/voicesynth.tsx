@@ -50,8 +50,7 @@ export type VoiceSynthResponse = {
 };
 
 /** Type guard to check if a voice is valid. */
-export const isValidVoice = (voice: string): voice is VoiceType =>
-  voiceTypes.includes(voice as VoiceType);
+export const isValidVoice = (voice: string): voice is VoiceType => voiceTypes.includes(voice as VoiceType);
 
 /** Type guard to check if a voice synthesis request is valid. */
 export const isValidVoiceSynthRequest = (
@@ -91,9 +90,7 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
       }
 
       props.voice = props.voice || DEFAULT_VOICE;
-      const voice: VoiceType = isValidVoice(props.voice)
-        ? props.voice
-        : DEFAULT_VOICE;
+      const voice: VoiceType = isValidVoice(props.voice) ? props.voice : DEFAULT_VOICE;
 
       const audioResponse = await agent.audio.speech.create({
         model: DEFAULT_VOICE_MODEL,

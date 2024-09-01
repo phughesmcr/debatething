@@ -103,8 +103,7 @@ export async function makeAPIRequest(
                 `data: ${
                   JSON.stringify({
                     role: "system",
-                    content:
-                      `[Warning: Response finished due to ${finishReason}]`,
+                    content: `[Warning: Response finished due to ${finishReason}]`,
                   })
                 }\n\n`,
               ),
@@ -121,9 +120,7 @@ export async function makeAPIRequest(
       ) {
         if (retries < MAX_RETRIES - 1) {
           retries++;
-          await new Promise((resolve) =>
-            setTimeout(resolve, RETRY_DELAY_MS * retries)
-          );
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * retries));
           continue;
         }
       }

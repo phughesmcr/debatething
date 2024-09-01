@@ -35,7 +35,8 @@
     "routes/": "./routes/",
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
-    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
+    "hooks/": "./hooks/"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

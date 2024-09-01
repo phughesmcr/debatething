@@ -60,9 +60,7 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
         errors.push(`Participant ${index + 1} name must be a non-empty string`);
       } else if (agent.name.length > MAX_NAME_LENGTH) {
         errors.push(
-          `Participant ${
-            index + 1
-          } name must be ${MAX_NAME_LENGTH} characters or less`,
+          `Participant ${index + 1} name must be ${MAX_NAME_LENGTH} characters or less`,
         );
       }
 
@@ -75,9 +73,7 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
         );
       } else if (agent.personality.length > MAX_PERSONALITY_LENGTH) {
         errors.push(
-          `Participant ${
-            index + 1
-          } personality must be ${MAX_PERSONALITY_LENGTH} characters or less`,
+          `Participant ${index + 1} personality must be ${MAX_PERSONALITY_LENGTH} characters or less`,
         );
       }
     });

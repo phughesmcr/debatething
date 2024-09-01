@@ -4,7 +4,7 @@ import { asset } from "$fresh/runtime.ts";
 const JSONLD = {
   "@context": "http://www.schema.org",
   "@type": "WebSite",
-  "name": "The Debate Machine",
+  "name": "DebateThing.com",
   "url": "https://www.debatething.com",
   "image": {
     "@type": "ImageObject",
@@ -23,7 +23,7 @@ export default function App({ Component }: PageProps) {
           name="viewport"
           content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
-        <title>The Debate Machine</title>
+        <title>DebateThing.com</title>
         <link
           rel="icon"
           type="image/png"
@@ -50,7 +50,7 @@ export default function App({ Component }: PageProps) {
         <meta name="theme-color" content="#1881F2" key="head-theme-color" />
         <meta
           name="application-name"
-          content="The Debate Machine"
+          content="DebateThing.com"
           key="head-application-name"
         />
         <meta name="HandheldFriendly" content="True" />

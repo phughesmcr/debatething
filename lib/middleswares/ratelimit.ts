@@ -16,9 +16,7 @@ const store: RateLimitStore = {};
 function cleanupStoreEntry(ip: string, now: number): void {
   if (!store[ip]) return;
 
-  store[ip].timestamps = store[ip].timestamps.filter((timestamp) =>
-    now - timestamp < WINDOW_SIZE
-  );
+  store[ip].timestamps = store[ip].timestamps.filter((timestamp) => now - timestamp < WINDOW_SIZE);
   store[ip].lastCleanup = now;
 
   if (store[ip].timestamps.length === 0) {

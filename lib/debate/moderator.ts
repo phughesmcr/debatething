@@ -1,4 +1,4 @@
-import moderatorResponses from "./moderatorChat.json" with { type: "json" };
+import moderatorResponses from "./moderatorResponses.json" with { type: "json" };
 
 export const MODERATOR_NAME = "Moderator";
 
