@@ -3,11 +3,35 @@ import DebateForm from "islands/DebateForm.tsx";
 export default function Home() {
   return (
     <div class="p-4 mx-auto max-w-screen-md">
-      <h1 class="text-4xl font-bold mb-8 mt-3">DebateThing.com</h1>
-      <DebateForm />
-      <p class="text-sm text-gray-500">
-        DebateThing.com is a tool for creating and participating in simulated debates. It uses OpenAI's GPT-4o-Mini model to generate debate outcomes; remember, AI can make mistakes, can even hallucinate. Don't believe everything you read.
+      <h1 class="text-4xl font-bold mb-3 mt-3">DebateThing.com</h1>
+      <p class="text-sm text-gray-500 mb-3">
+        DebateThing.com is an experimental tool for creating simulated debates.{" "}
+        It uses OpenAI's GPT-4o-Mini model to generate debates and TTS-1 to synthesize voice audio.{" "}
+        <span class="font-semibold">
+          Remember, AI can make mistakes and even hallucinate.{" "}
+          Don't believe everything you read or hear.{" "}
+        </span>
       </p>
+      <p class="text-sm text-gray-500 mb-3">
+        DebateThing is{" "}
+        <a href="https://github.com/phughesmcr/debatething" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+          Open Source,{" "}
+        </a> 
+        made with{" "}
+        <a href="http://fresh.deno.dev" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+          Deno Fresh
+        </a>
+        , and hosted on{" "}
+        <a href="https://www.deno.com/deploy" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+          Deno Deploy
+        </a>
+        .{" "}
+        <a href="http://phugh.es" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+          Hire me
+        </a>
+        .
+      </p>
+      <DebateForm />
     </div>
   );
 }

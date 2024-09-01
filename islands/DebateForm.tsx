@@ -3,7 +3,7 @@ import { useDebateState } from "hooks/useDebateState.ts";
 import DebateFormInputs from "components/DebateFormInputs.tsx";
 import DebateDisplay from "components/DebateDisplay.tsx";
 import AudioControls from "components/AudioControls.tsx";
-import { handleAudioSynthesis, playFullDebate, pauseCurrentAudio, resumeCurrentAudio, isAnySynthesizing, getCurrentSynthesizingId } from "lib/audioUtils.ts";
+import { handleAudioSynthesis, playFullDebate, pauseCurrentAudio, resumeCurrentAudio, isAnySynthesizing, getCurrentSynthesizingId, cancelAudioSynthesis, isPlaying } from "lib/audioUtils.ts";
 
 export default function DebateForm() {
   const {
@@ -33,6 +33,7 @@ export default function DebateForm() {
   useEffect(() => {
     const checkSynthesisStatus = () => {
       setCurrentSynthesizingId(getCurrentSynthesizingId());
+      setIsFullDebatePlaying(isPlaying());
     };
 
     const intervalId = setInterval(checkSynthesisStatus, 1000);
@@ -40,14 +41,25 @@ export default function DebateForm() {
     return () => clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    const checkPlaybackStatus = () => {
+      setIsFullDebatePlaying(isPlaying());
+      setCurrentSynthesizingId(getCurrentSynthesizingId());
+    };
+
+    const intervalId = setInterval(checkPlaybackStatus, 500);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const handleFullDebatePlayback = async () => {
     if (isFullDebatePlaying) {
-      pauseCurrentAudio();
+      await pauseCurrentAudio();
       setIsFullDebatePlaying(false);
     } else {
       setIsDebateAudioLoading(true);
       try {
-        await playFullDebate(debate, agentDetails);
+        playFullDebate(debate, agentDetails);
         setIsFullDebatePlaying(true);
       } catch (error) {
         console.error("Error playing full debate:", error);
@@ -56,25 +68,37 @@ export default function DebateForm() {
       }
     }
   };
-
-  const handlePauseResume = () => {
+  
+  const handlePauseResume = async () => {
     if (isFullDebatePlaying) {
-      pauseCurrentAudio();
+      await pauseCurrentAudio();
     } else {
-      resumeCurrentAudio();
+      await resumeCurrentAudio();
     }
     setIsFullDebatePlaying(!isFullDebatePlaying);
   };
 
+  const handleCancelSynthesis = () => {
+    cancelAudioSynthesis();
+    setIsFullDebatePlaying(false);
+  };
+
+  const safeSetNumDebateRounds = (value: number | string) => {
+    const parsedValue = parseInt(value as string, 10);
+    if (!isNaN(parsedValue)) {
+      setNumDebateRounds(parsedValue);
+    }
+  };
+
   return (
     <div>
-      <DebateFormInputs
+     <DebateFormInputs
         position={position}
         setPosition={setPosition}
         numAgents={numAgents}
         setNumAgents={setNumAgents}
         numDebateRounds={numDebateRounds}
-        setNumDebateRounds={setNumDebateRounds}
+        setNumDebateRounds={safeSetNumDebateRounds}
         context={context}
         setContext={setContext}
         agentDetails={agentDetails}
@@ -92,6 +116,7 @@ export default function DebateForm() {
           isDebateAudioLoading={isDebateAudioLoading}
           isSynthesizing={isAnySynthesizing()}
           handleFullDebatePlayback={handleFullDebatePlayback}
+          handleCancelSynthesis={handleCancelSynthesis}
           handlePauseResume={handlePauseResume}
         />
       )}

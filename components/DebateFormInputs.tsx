@@ -16,7 +16,7 @@ interface DebateFormInputsProps {
   numAgents: number;
   setNumAgents: (value: number) => void;
   numDebateRounds: number;
-  setNumDebateRounds: (value: number) => void;
+  setNumDebateRounds: (value: number | string) => void;
   context: string;
   setContext: (value: string) => void;
   agentDetails: Required<Personality>[];
@@ -61,6 +61,8 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
           type="text"
           id="position"
           value={position}
+          placeholder="The moon is made of cheese"
+          minLength={4}
           maxLength={MAX_POSITION_LENGTH}
           onInput={(e) => setPosition((e.target as HTMLInputElement).value)}
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -68,7 +70,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
         />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="numAgents" class="block text-sm font-medium text-gray-700 mb-2">
             Number of Participants
@@ -101,7 +103,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
         </div>
       </div>
 
-      <details class="bg-gray-50 p-6 rounded-lg">
+      <details class="bg-gray-50 p-3 rounded-lg">
         <summary class="font-medium text-gray-700 cursor-pointer">Customization & Participant Settings</summary>
         <div class="mt-4 space-y-6">
           <div>
@@ -113,7 +115,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
               value={context}
               onInput={(e) => setContext((e.target as HTMLTextAreaElement).value)}
               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={5}
+              rows={3}
               maxLength={MAX_DEBATE_CONTEXT_LENGTH}
             />
           </div>
@@ -144,7 +146,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
             <button
               type="button"
               onClick={cancelDebate}
-              class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
+              class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
             >
               Cancel Debate
             </button>
@@ -153,7 +155,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
             <button
               type="submit"
               disabled={loading}
-              class={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
+              class={`w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >

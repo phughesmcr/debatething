@@ -10,6 +10,7 @@ import {
 } from "lib/debate/inputValidation.ts";
 import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
 import type { AgentDetails } from "routes/api/debate.tsx";
+
 export function useDebateState() {
   const [position, setPosition] = useState("");
   const [numAgents, setNumAgentsState] = useState(2);
@@ -182,13 +183,20 @@ export function useDebateState() {
     }
   }, []);
 
+  const safeSetNumDebateRounds = useCallback((value: number | string) => {
+    const parsedValue = parseInt(value as string, 10);
+    if (!isNaN(parsedValue)) {
+      setNumDebateRounds(clamp(parsedValue, MIN_DEBATE_ROUNDS, MAX_DEBATE_ROUNDS));
+    }
+  }, []);
+
   return {
     position,
     setPosition,
     numAgents,
     setNumAgents,
     numDebateRounds,
-    setNumDebateRounds,
+    setNumDebateRounds: safeSetNumDebateRounds,
     context,
     setContext,
     agentDetails,

@@ -102,14 +102,20 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         throw new Error("No response from speech service");
       }
 
+      const contentType = audioResponse.headers.get('content-type');
+      const audioFormat = contentType ? contentType.split('/')[1] : 'mp3';
+
+      // Return the audio data as an ArrayBuffer instead of base64
+      const audioBuffer = await audioResponse.arrayBuffer();
+
       return new Response(
-        JSON.stringify({
-          audio: await responseToBase64(audioResponse),
-          error: null,
-        } as VoiceSynthResponse),
+        audioBuffer,
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": `audio/${audioFormat}`,
+            "Content-Disposition": "attachment; filename=speech.mp3"
+          },
         },
       );
     } catch (error) {
@@ -121,10 +127,7 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
       }
 
       return new Response(
-        JSON.stringify({
-          audio: "",
-          error: errorMessage,
-        } as VoiceSynthResponse),
+        JSON.stringify({ error: errorMessage }),
         {
           status: 500,
           headers: { "Content-Type": "application/json" },

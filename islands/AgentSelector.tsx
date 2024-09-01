@@ -45,11 +45,11 @@ export default function AgentSelector(
           ? (
             agentDetails.map((agent, index) => (
               <div key={index} class="bg-white shadow-md rounded-lg p-6">
-                <h4 class="text-lg font-semibold mb-4">Participant {index + 1}</h4>
+                <h4 class="text-lg font-semibold mb-3">Participant {index + 1}</h4>
                 {showCustomAgents
                   ? (
                     <>
-                      <div class="mb-4">
+                      <div class="mb-3">
                         <label htmlFor={`agent-name-${index}`} class="block text-sm font-medium text-gray-700 mb-2">
                           Name:
                         </label>
@@ -68,7 +68,7 @@ export default function AgentSelector(
                           required
                         />
                       </div>
-                      <div class="mb-4">
+                      <div class="mb-3">
                         <label
                           htmlFor={`agent-personality-${index}`}
                           class="block text-sm font-medium text-gray-700 mb-2"
@@ -92,7 +92,7 @@ export default function AgentSelector(
                     </>
                   )
                   : (
-                    <div class="mb-4">
+                    <div class="mb-3">
                       <label
                         htmlFor={`agent-personality-${index}`}
                         class="block text-sm font-medium text-gray-700 mb-2"
@@ -113,7 +113,7 @@ export default function AgentSelector(
                       </select>
                     </div>
                   )}
-                <div class="mb-4">
+                <div class="mb-3">
                   <label htmlFor={`agent-stance-${index}`} class="block text-sm font-medium text-gray-700 mb-2">
                     Stance:
                   </label>
@@ -134,7 +134,7 @@ export default function AgentSelector(
                     <option value="undecided">Undecided</option>
                   </select>
                 </div>
-                <div class="mb-4">
+                <div class="mb-3">
                   <label htmlFor={`agent-voice-${index}`} class="block text-sm font-medium text-gray-700 mb-2">
                     Voice:
                   </label>

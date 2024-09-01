@@ -1,63 +1,73 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState, useEffect } from 'preact/hooks';
+import { isPlaying, isAudioPaused } from 'lib/audioUtils.ts';
 
 interface AudioControlsProps {
   isFullDebatePlaying: boolean;
   isDebateAudioLoading: boolean;
   isSynthesizing: boolean;
-  handleFullDebatePlayback: () => Promise<void>;
+  handleFullDebatePlayback: () => void;
   handleCancelSynthesis: () => void;
   handlePauseResume: () => void;
 }
 
-const AudioControls = ({
+export default function AudioControls({
   isFullDebatePlaying,
   isDebateAudioLoading,
   isSynthesizing,
   handleFullDebatePlayback,
   handleCancelSynthesis,
-  handlePauseResume,
-}: AudioControlsProps) => {
-  const [buttonText, setButtonText] = useState("Listen to Debate");
+  handlePauseResume
+}: AudioControlsProps) {
+  const [playbackState, setPlaybackState] = useState('idle');
 
   useEffect(() => {
-    if (isDebateAudioLoading) {
-      setButtonText("Loading...");
-    } else if (isSynthesizing) {
-      setButtonText("Cancel Synthesis");
-    } else if (isFullDebatePlaying) {
-      setButtonText("Pause Debate");
-    } else {
-      setButtonText("Listen to Debate");
-    }
-  }, [isDebateAudioLoading, isSynthesizing, isFullDebatePlaying]);
+    const updatePlaybackState = () => {
+      if (isFullDebatePlaying) {
+        setPlaybackState(isPlaying() ? 'playing' : 'paused');
+      } else {
+        setPlaybackState('idle');
+      }
+    };
 
-  const handleClick = () => {
-    if (isSynthesizing) {
-      handleCancelSynthesis();
-    } else if (isFullDebatePlaying) {
-      handlePauseResume();
+    updatePlaybackState();
+    const intervalId = setInterval(updatePlaybackState, 500);
+    return () => clearInterval(intervalId);
+  }, [isFullDebatePlaying]);
+
+  const getButtonText = () => {
+    if (isDebateAudioLoading) return 'Loading...';
+    if (playbackState === 'playing') return 'Pause';
+    if (playbackState === 'paused') return 'Resume';
+    return 'Listen to Debate';
+  };
+
+  const handleMainButtonClick = () => {
+    if (playbackState === 'idle') {
+      handleFullDebatePlayback();
     } else {
-      handleFullDebatePlayback().catch(console.error);
+      handlePauseResume();
     }
   };
 
   return (
-    <button
-      onClick={handleClick}
-      class={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-opacity-50 transition duration-150 ease-in-out ${
-        isDebateAudioLoading
-          ? "bg-yellow-500 cursor-not-allowed"
-          : isSynthesizing
-          ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
-          : isFullDebatePlaying
-          ? "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
-          : "bg-green-500 hover:bg-green-600 focus:ring-green-500"
-      }`}
-      disabled={isDebateAudioLoading}
-    >
-      {buttonText}
-    </button>
+    <div class="flex justify-between gap-2 mt-2">
+      <button 
+        onClick={handleMainButtonClick}
+        disabled={isDebateAudioLoading || isSynthesizing}
+        class={`w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
+          isDebateAudioLoading || isSynthesizing ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+      >
+        {getButtonText()}
+      </button>
+      {isFullDebatePlaying && (
+        <button 
+          onClick={handleCancelSynthesis}
+          class="w-full ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
+        >
+          Stop
+        </button>
+      )}
+    </div>
   );
-};
-
-export default AudioControls;
+}
