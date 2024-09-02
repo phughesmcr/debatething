@@ -1,25 +1,29 @@
 import { Personality } from "lib/debate/personalities.ts";
 import { VoiceType, isValidVoice } from "routes/api/voicesynth.tsx";
 
-let audioQueue: Array<{ content: string; voice: string; id: number }> = [];
+let audioQueue: Array<{ content: string; voice: string }> = [];
 let isProcessingQueue = false;
 let currentAudio: HTMLAudioElement | null = null;
-let currentSynthesizingId: number | null = null;
 let isPaused = false;
 let currentPlaybackPosition = 0;
-let isAudioCancelled = false;
-let currentAudioIndex = 0;
-let currentSynthesisController: AbortController | null = null;
+let isLoading = false;
+let currentQueueIndex = 0;
+
+let isSynthesizingAudio = false;
+
+export const isSynthesizing = (): boolean => {
+  return isSynthesizingAudio;
+};
 
 export const handleAudioSynthesis = async (content: string, voice: string): Promise<HTMLAudioElement> => {
+  isLoading = true;
+  isSynthesizingAudio = true;
   console.log(`Synthesizing audio for voice: ${voice}`);
-  currentSynthesisController = new AbortController();
   try {
     const response = await fetch("/api/voicesynth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: content, voice }),
-      signal: currentSynthesisController.signal,
     });
 
     if (!response.ok) {
@@ -29,7 +33,7 @@ export const handleAudioSynthesis = async (content: string, voice: string): Prom
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
-    
+
     await new Promise((resolve, reject) => {
       audio.addEventListener('loadedmetadata', () => {
         console.log(`Audio synthesized for ${voice}, length:`, audio.duration);
@@ -38,139 +42,115 @@ export const handleAudioSynthesis = async (content: string, voice: string): Prom
       audio.addEventListener('error', (e) => reject(new Error(`Audio failed to load: ${e.message}`)));
     });
 
+    isLoading = false;
+    isSynthesizingAudio = false;
     return audio;
   } catch (error) {
+    isLoading = false;
+    isSynthesizingAudio = false;
     console.error("Error in handleAudioSynthesis:", error);
     throw error;
-  } finally {
-    currentSynthesisController = null;
   }
 };
 
-export const queueAudio = (content: string, voice: VoiceType, id: number) => {
-  audioQueue.push({ content, voice, id });
-};
+
 
 const processQueue = async () => {
-  if (isProcessingQueue || audioQueue.length === 0 || isPaused || isAudioCancelled) {
+  if (isProcessingQueue || audioQueue.length === 0) {
     return;
   }
 
   isProcessingQueue = true;
 
-  while (currentAudioIndex < audioQueue.length && !isPaused && !isAudioCancelled) {
-    const { content, voice, id } = audioQueue[currentAudioIndex];
-    currentSynthesizingId = id;
+  for (let i = currentQueueIndex; i < audioQueue.length; i++) {
+    if (isPaused) break;
 
+    const { content, voice } = audioQueue[i];
     try {
       const audio = await handleAudioSynthesis(content, voice);
-      if (isAudioCancelled) break;
-      currentSynthesizingId = null;
+      if (isPaused) break;
       currentAudio = audio;
-      if (!isPaused) {
-        await playAudio(audio);
-      }
-      if (!isPaused && !isAudioCancelled) {
-        currentAudio = null;
-        currentPlaybackPosition = 0;
-        currentAudioIndex++;
-      }
+      await playAudio(audio);
+      if (isPaused) break;
+      currentAudio = null;
+      currentPlaybackPosition = 0;
+      currentQueueIndex = i + 1;
     } catch (error) {
       console.error("Error processing audio queue:", error);
-      currentAudioIndex++;
-      currentSynthesizingId = null;
     }
   }
 
-  if (currentAudioIndex >= audioQueue.length || isAudioCancelled) {
-    currentAudioIndex = 0;
-    isProcessingQueue = false;
-  }
+  isProcessingQueue = false;
 };
 
 const playAudio = (audio: HTMLAudioElement): Promise<void> => {
   return new Promise((resolve) => {
-    audio.onended = () => {
-      if (!isPaused) {
-        currentPlaybackPosition = 0;
-        resolve();
-      }
-    };
+    audio.addEventListener('ended', () => resolve(), { once: true });
     audio.currentTime = currentPlaybackPosition;
     audio.play().catch(console.error);
   });
 };
 
-export const pauseCurrentAudio = () => {
-  isPaused = true;
+export const pauseResumeAudio = () => {
   if (currentAudio) {
-    currentAudio.pause();
-    currentPlaybackPosition = currentAudio.currentTime;
-  }
-};
-
-export const resumeCurrentAudio = () => {
-  isPaused = false;
-  if (currentAudio) {
-    currentAudio.currentTime = currentPlaybackPosition;
-    currentAudio.play().catch(console.error);
-  } else if (audioQueue.length > 0) {
-    processQueue();
-  }
-};
-
-export const cancelAudioSynthesis = () => {
-  isAudioCancelled = true;
-  audioQueue = [];
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
-  }
-  if (currentSynthesisController) {
-    currentSynthesisController.abort();
-  }
-  currentSynthesizingId = null;
-  isPaused = false;
-  currentPlaybackPosition = 0;
-  currentAudioIndex = 0;
-  isProcessingQueue = false;
-};
-
-export const playFullDebate = async (
-  debate: Array<{ role: string; content: string }>,
-  agentDetails: Required<Personality>[],
-) => {
-  cancelAudioSynthesis(); // Reset state before starting new debate
-  isAudioCancelled = false;
-  isPaused = false;
-  currentPlaybackPosition = 0;
-  currentAudioIndex = 0;
-  audioQueue = [];
-  debate.forEach((message, index) => {
-    if (message.role !== "user" && message.role !== "system") {
-      const voice: VoiceType = agentDetails.find((agent) => agent.name === message.role)?.voice || "nova";
-      if (isValidVoice(voice)) {
-        queueAudio(message.content, voice, index);
-      } else {
-        console.error(`Invalid voice type: ${voice}`);
-      }
+    if (isPaused) {
+      currentAudio.play().catch(console.error);
+    } else {
+      currentAudio.pause();
+      currentPlaybackPosition = currentAudio.currentTime;
     }
-  });
-  await processQueue();
+    isPaused = !isPaused;
+  } else if (isPaused) {
+    isPaused = false;
+    processQueue();
+  } else if (audioQueue.length > 0) {
+    isPaused = true;
+  }
 };
 
 export const isPlaying = (): boolean => {
   return isProcessingQueue && !isPaused;
 };
 
-export const isAnySynthesizing = (): boolean => {
-  return isProcessingQueue || currentSynthesizingId !== null;
+export const isAudioLoading = (): boolean => {
+  return isLoading;
 };
 
-export const getCurrentSynthesizingId = (): number | null => {
-  return currentSynthesizingId;
+export const hasAudioStarted = (): boolean => {
+  return audioQueue.length > 0 || currentQueueIndex > 0;
 };
 
-export const isAudioPaused = (): boolean => {
-  return isPaused;
+export const playFullDebate = async (
+  debate: Array<{ role: string; content: string }>,
+  agentDetails: Required<Personality>[],
+) => {
+  isPaused = false;
+  currentPlaybackPosition = 0;
+  currentQueueIndex = 0;
+  audioQueue = [];
+  isLoading = true;
+  isSynthesizingAudio = true;
+  debate.forEach((message) => {
+    if (message.role !== "user" && message.role !== "system") {
+      const voice: VoiceType = agentDetails.find((agent) => agent.name === message.role)?.voice || "nova";
+      if (isValidVoice(voice)) {
+        audioQueue.push({ content: message.content, voice });
+      } else {
+        console.error(`Invalid voice type: ${voice}`);
+      }
+    }
+  });
+  isLoading = false;
+  isSynthesizingAudio = false;
+  await processQueue();
+};
+
+export const resetAudioState = () => {
+  audioQueue = [];
+  isProcessingQueue = false;
+  currentAudio = null;
+  isPaused = false;
+  currentPlaybackPosition = 0;
+  currentQueueIndex = 0;
+  isLoading = false;
 };

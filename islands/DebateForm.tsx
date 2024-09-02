@@ -1,9 +1,8 @@
-import { useState, useEffect } from "preact/hooks";
-import { useDebateState } from "hooks/useDebateState.ts";
-import DebateFormInputs from "components/DebateFormInputs.tsx";
-import DebateDisplay from "components/DebateDisplay.tsx";
 import AudioControls from "components/AudioControls.tsx";
-import { handleAudioSynthesis, playFullDebate, pauseCurrentAudio, resumeCurrentAudio, isAnySynthesizing, getCurrentSynthesizingId, cancelAudioSynthesis, isPlaying } from "lib/audioUtils.ts";
+import DebateDisplay from "components/DebateDisplay.tsx";
+import DebateFormInputs from "components/DebateFormInputs.tsx";
+import { useAudioControls } from "hooks/useAudioControls.ts";
+import { useDebateState } from "hooks/useDebateState.ts";
 
 export default function DebateForm() {
   const {
@@ -26,79 +25,21 @@ export default function DebateForm() {
     cancelDebate,
   } = useDebateState();
 
-  const [isFullDebatePlaying, setIsFullDebatePlaying] = useState(false);
-  const [isDebateAudioLoading, setIsDebateAudioLoading] = useState(false);
-  const [currentSynthesizingId, setCurrentSynthesizingId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const checkSynthesisStatus = () => {
-      setCurrentSynthesizingId(getCurrentSynthesizingId());
-      setIsFullDebatePlaying(isPlaying());
-    };
-
-    const intervalId = setInterval(checkSynthesisStatus, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
-    const checkPlaybackStatus = () => {
-      setIsFullDebatePlaying(isPlaying());
-      setCurrentSynthesizingId(getCurrentSynthesizingId());
-    };
-
-    const intervalId = setInterval(checkPlaybackStatus, 500);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  const handleFullDebatePlayback = async () => {
-    if (isFullDebatePlaying) {
-      await pauseCurrentAudio();
-      setIsFullDebatePlaying(false);
-    } else {
-      setIsDebateAudioLoading(true);
-      try {
-        playFullDebate(debate, agentDetails);
-        setIsFullDebatePlaying(true);
-      } catch (error) {
-        console.error("Error playing full debate:", error);
-      } finally {
-        setIsDebateAudioLoading(false);
-      }
-    }
-  };
-  
-  const handlePauseResume = async () => {
-    if (isFullDebatePlaying) {
-      await pauseCurrentAudio();
-    } else {
-      await resumeCurrentAudio();
-    }
-    setIsFullDebatePlaying(!isFullDebatePlaying);
-  };
-
-  const handleCancelSynthesis = () => {
-    cancelAudioSynthesis();
-    setIsFullDebatePlaying(false);
-  };
-
-  const safeSetNumDebateRounds = (value: number | string) => {
-    const parsedValue = parseInt(value as string, 10);
-    if (!isNaN(parsedValue)) {
-      setNumDebateRounds(parsedValue);
-    }
-  };
+  const {
+    isPlaying,
+    isLoading,
+    handlePlayPause,
+  } = useAudioControls(debate, agentDetails);
 
   return (
     <div>
-     <DebateFormInputs
+      <DebateFormInputs
         position={position}
         setPosition={setPosition}
         numAgents={numAgents}
         setNumAgents={setNumAgents}
         numDebateRounds={numDebateRounds}
-        setNumDebateRounds={safeSetNumDebateRounds}
+        setNumDebateRounds={setNumDebateRounds}
         context={context}
         setContext={setContext}
         agentDetails={agentDetails}
@@ -112,12 +53,8 @@ export default function DebateForm() {
 
       {isDebateFinished && (
         <AudioControls
-          isFullDebatePlaying={isFullDebatePlaying}
-          isDebateAudioLoading={isDebateAudioLoading}
-          isSynthesizing={isAnySynthesizing()}
-          handleFullDebatePlayback={handleFullDebatePlayback}
-          handleCancelSynthesis={handleCancelSynthesis}
-          handlePauseResume={handlePauseResume}
+          debate={debate}
+          agentDetails={agentDetails}
         />
       )}
 
@@ -126,8 +63,6 @@ export default function DebateForm() {
           debate={debate}
           agentDetails={agentDetails}
           isDebateFinished={isDebateFinished}
-          handleAudioSynthesis={handleAudioSynthesis}
-          currentSynthesizingId={currentSynthesizingId}
         />
       )}
     </div>

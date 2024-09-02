@@ -1,6 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { clamp, sanitizeInput } from "lib/utils.ts";
-import { getRandomPersonalities, personalities, Personality } from "lib/debate/personalities.ts";
 import {
   MAX_AGENTS,
   MAX_DEBATE_ROUNDS,
@@ -8,8 +5,11 @@ import {
   MIN_DEBATE_ROUNDS,
   validateDebateInput,
 } from "lib/debate/inputValidation.ts";
-import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
+import { getRandomPersonalities, Personality } from "lib/debate/personalities.ts";
+import { clamp, sanitizeInput } from "lib/utils.ts";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { AgentDetails } from "routes/api/debate.tsx";
+import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
 
 export function useDebateState() {
   const [position, setPosition] = useState("");
@@ -121,13 +121,13 @@ export function useDebateState() {
             if (jsonData.trim() === "[DONE]") {
               setIsDebateFinished(true);
               if (currentMessage) {
-                setDebate((prevDebate) => [...prevDebate, currentMessage]);
+                setDebate((prevDebate) => [...prevDebate, currentMessage as { role: string; content: string }]);
               }
             } else {
               try {
                 const message = JSON.parse(jsonData);
                 if (currentMessage && message.role && message.role !== currentMessage.role) {
-                  setDebate((prevDebate) => [...prevDebate, currentMessage]);
+                  setDebate((prevDebate) => [...prevDebate, currentMessage as { role: string; content: string }]);
                   currentMessage = message;
                 } else if (!currentMessage) {
                   currentMessage = message;

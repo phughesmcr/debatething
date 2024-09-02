@@ -1,21 +1,16 @@
-import { useEffect, useState } from "preact/hooks";
 import { Personality } from "lib/debate/personalities.ts";
-import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
+import { useEffect, useState } from "preact/hooks";
 
 interface DebateDisplayProps {
   debate: Array<{ role: string; content: string }>;
   agentDetails: Required<Personality>[];
   isDebateFinished: boolean;
-  handleAudioSynthesis: (content: string, voice: string) => Promise<HTMLAudioElement>;
-  currentSynthesizingId: number | null;
 }
 
 const DebateDisplay = ({
   debate,
   agentDetails,
   isDebateFinished,
-  handleAudioSynthesis,
-  currentSynthesizingId,
 }: DebateDisplayProps) => {
   const [accumulatedDebate, setAccumulatedDebate] = useState<Array<{ role: string; content: string }>>([]);
 
@@ -71,16 +66,6 @@ const DebateDisplay = ({
                   {isModerator ? "Moderator" : agent?.name || message.role}
                   {!isModerator && agent?.stance && ` (${agent.stance})`}
                 </h3>
-                {!isModerator && message.content && (
-                  <button
-                    onClick={() => handleAudioSynthesis(message.content, agent?.voice || DEFAULT_VOICE)}
-                    class="hidden px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
-                    disabled={currentSynthesizingId === index}
-                    hidden
-                  >
-                    {currentSynthesizingId === index ? "Synthesizing..." : "Play Audio"}
-                  </button>
-                )}
               </div>
               <p class="text-gray-700 whitespace-pre-wrap">{message.content}</p>
             </div>
