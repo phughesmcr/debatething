@@ -1,5 +1,3 @@
-import { FunctionComponent } from "preact";
-import { Personality } from "lib/debate/personalities.ts";
 import AgentSelector from "islands/AgentSelector.tsx";
 import {
   MAX_AGENTS,
@@ -9,6 +7,7 @@ import {
   MIN_AGENTS,
   MIN_DEBATE_ROUNDS,
 } from "lib/debate/inputValidation.ts";
+import { Personality } from "lib/debate/personalities.ts";
 
 interface DebateFormInputsProps {
   position: string;
@@ -28,7 +27,20 @@ interface DebateFormInputsProps {
   cancelDebate: () => void;
 }
 
-const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
+const EXAMPLE_POSITIONS = [
+  "Pineapple belongs on pizza",
+  "Cats are better pets than dogs",
+  "The earth is flat and supported by giant turtles",
+  "Unicorns would make great house pets",
+  "Time travel should be a mandatory school subject",
+  "Pizza is a vegetable",
+  "Aliens built the pyramids",
+  "Everyday should be a holiday",
+  "Dinosaurs would have made excellent astronauts",
+  "Coffee is better than sleep",
+];
+
+const DebateFormInputs = ({
   position,
   setPosition,
   numAgents,
@@ -44,7 +56,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
   isDebating,
   handleSubmit,
   cancelDebate,
-}) => {
+}: DebateFormInputsProps) => {
   return (
     <form
       onSubmit={(e) => {
@@ -61,7 +73,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
           type="text"
           id="position"
           value={position}
-          placeholder="The moon is made of cheese"
+          placeholder={EXAMPLE_POSITIONS[Math.floor(Math.random() * EXAMPLE_POSITIONS.length)]}
           minLength={4}
           maxLength={MAX_POSITION_LENGTH}
           onInput={(e) => setPosition((e.target as HTMLInputElement).value)}
@@ -141,27 +153,25 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
       )}
 
       <div class="flex justify-between">
-        {isDebating
-          ? (
-            <button
-              type="button"
-              onClick={cancelDebate}
-              class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
-            >
-              Cancel Debate
-            </button>
-          )
-          : (
-            <button
-              type="submit"
-              disabled={loading}
-              class={`w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              Start Debate
-            </button>
-          )}
+        {isDebating ? (
+          <button
+            type="button"
+            onClick={cancelDebate}
+            class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
+          >
+            Cancel Debate
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={loading}
+            class={`w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Start Debate
+          </button>
+        )}
       </div>
     </form>
   );

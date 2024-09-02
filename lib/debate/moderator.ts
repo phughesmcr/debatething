@@ -50,13 +50,13 @@ export class Moderator {
     this.sendMessage(this.getRandomResponse("introduction", {
       name,
       personality,
-      stance,
+      stance: stance === "undecided" ? `"undecided" on` : stance === "for" ? `"for"` : `"against"`,
     }));
   }
 
   announceOpeningStatements() {
     this.sendMessage(
-      "Now, let's hear opening statements from each participant. ",
+      "Now, let's hear your opening statements. ",
     );
   }
 
