@@ -23,6 +23,8 @@ export default function DebateForm() {
     isDebateFinished,
     handleSubmit,
     cancelDebate,
+    enableModerator,
+    setEnableModerator,
   } = useDebateState();
 
   const {
@@ -50,6 +52,8 @@ export default function DebateForm() {
         isDebating={isDebating}
         handleSubmit={handleSubmit}
         cancelDebate={cancelDebate}
+        enableModerator={enableModerator}
+        setEnableModerator={setEnableModerator}
       />
 
       {isDebateFinished && (

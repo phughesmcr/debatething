@@ -17,6 +17,7 @@ export interface DebateRequest {
   agentDetails: AgentDetails[];
   uuid: string;
   numDebateRounds: number;
+  enableModerator: boolean;
 }
 
 export type DebateResponse = ReadableStream | { errors: string[] };

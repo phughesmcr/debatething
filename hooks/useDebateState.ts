@@ -23,6 +23,7 @@ export function useDebateState() {
   const [isDebating, setIsDebating] = useState(false);
   const [isDebateFinished, setIsDebateFinished] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [enableModerator, setEnableModerator] = useState(true);
 
   const updateAgentDetails = useCallback((count: number) => {
     const clampedCount = clamp(count, MIN_AGENTS, MAX_AGENTS);
@@ -67,6 +68,7 @@ export function useDebateState() {
       numAgents,
       numDebateRounds,
       uuid: "",
+      enableModerator,
     });
 
     if (!valid) {
@@ -85,11 +87,12 @@ export function useDebateState() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          position: sanitizedPosition,
-          context: sanitizedContext,
-          numAgents,
-          numDebateRounds,
-          agentDetails,
+        position: sanitizedPosition,
+        context: sanitizedContext,
+        numAgents,
+        numDebateRounds,
+        agentDetails,
+          enableModerator,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -175,16 +178,15 @@ export function useDebateState() {
     }
   }, [position, context, numAgents, numDebateRounds, agentDetails]);
 
-    const cancelDebate = useCallback(() => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        setIsDebating(false);
-        setLoading(false);
-        setDebate([]);
-        setIsDebateFinished(false);
-      }
-    }, []);
-
+  const cancelDebate = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsDebating(false);
+      setLoading(false);
+      setDebate([]);
+      setIsDebateFinished(false);
+    }
+  }, []);
 
   const safeSetNumDebateRounds = useCallback((value: number | string) => {
     const parsedValue = parseInt(value as string, 10);
@@ -212,5 +214,7 @@ export function useDebateState() {
     handleSubmit,
     cancelDebate,
     updateAgentDetails,
+    enableModerator,
+    setEnableModerator,
   };
 }
