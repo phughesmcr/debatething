@@ -175,13 +175,16 @@ export function useDebateState() {
     }
   }, [position, context, numAgents, numDebateRounds, agentDetails]);
 
-  const cancelDebate = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setIsDebating(false);
-      setLoading(false);
-    }
-  }, []);
+    const cancelDebate = useCallback(() => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        setIsDebating(false);
+        setLoading(false);
+        setDebate([]);
+        setIsDebateFinished(false);
+      }
+    }, []);
+
 
   const safeSetNumDebateRounds = useCallback((value: number | string) => {
     const parsedValue = parseInt(value as string, 10);
