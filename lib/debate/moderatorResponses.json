@@ -12,16 +12,16 @@
     "Welcome to this exchange of ideas. Our topic: '{position}' promises a lively debate. As moderator, I'm thrilled to present our participants:\n"
   ],
   "introduction": [
-    "Welcome, {name}. They are described as '{personality}'. Their stance is '{stance}' the position.\n",
-    "Let's welcome {name} to the debate. We're told they are '{personality}'. Their stance is '{stance}' the position.\n",
-    "With us is {name}. Described as '{personality}'. Their stance is '{stance}' the position.\n",
-    "Please give a warm welcome to {name}. Known for being '{personality}', they stand '{stance}' the position.\n",
-    "Joining our discussion is {name}. They bring a '{personality}' perspective and are '{stance}' the position.\n",
-    "Next, we have {name}. Characterized as '{personality}', they approach this topic from a stance that is '{stance}' the position.\n",
-    "Allow me to introduce {name}. Their '{personality}' nature informs their view, which is '{stance}' the position.\n",
-    "Our next participant is {name}. With a reputation for being '{personality}', they come to us '{stance}' the position.\n",
-    "{name} joins us next. Their '{personality}' approach contributes to their stance, which is '{stance}' the position.\n",
-    "Let's hear from {name}. Noted for their '{personality}', they enter this debate '{stance}' the position.\n"
+    "Welcome, {name}. Their stance is '{stance}' the position.\n",
+    "Let's welcome {name} to the debate. Their stance is '{stance}' the position.\n",
+    "With us is {name}. Their stance is '{stance}' the position.\n",
+    "Please give a warm welcome to {name}. Their stance is '{stance}' the position.\n",
+    "Joining our discussion is {name}. They are '{stance}' the position.\n",
+    "We have {name}. Their stance is '{stance}' the position.\n",
+    "Allow me to introduce {name}. They stand '{stance}' the position.\n",
+    "Our next participant is {name}. They come to us '{stance}' the position.\n",
+    "{name} joins us next, who is '{stance}' the position.\n",
+    "Let's hear it for {name}. They enter this debate '{stance}' the position.\n"
   ],
   "openingStatement": [
     "{name}, you have the floor for your opening statement.\n",
@@ -60,16 +60,7 @@
     "Prepare for round {round} as we continue our intellectual discourse.\n"
   ],
   "response": [
-    "{name}, it's your turn to respond.\n",
-    "{name}, what's your take so far?\n",
-    "Let's hear from {name} on these arguments.\n",
-    "{name}, how would you address the points raised?\n",
-    "We turn now to {name} for their perspective on the discussion.\n",
-    "{name}, we'd like your response to what's been said.\n",
-    "Your thoughts on this, {name}?\n",
-    "{name}, how do you react to the arguments presented?\n",
-    "We're interested in your response, {name}.\n",
-    "{name}, please share your counterarguments or supporting points.\n"
+    "{name}?\n"
   ],
   "concludingStatement": [
     "{name}, please provide your concluding statement.\n",
