@@ -1,5 +1,5 @@
-import { type PageProps } from "$fresh/server.ts";
 import { asset } from "$fresh/runtime.ts";
+import { type PageProps } from "$fresh/server.ts";
 
 const JSONLD = {
   "@context": "http://www.schema.org",
@@ -78,12 +78,23 @@ export default function App({ Component }: PageProps) {
         />
 
         <link rel="stylesheet" href={asset("/styles.css")} />
+
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: `${JSONLD}` }}
+          dangerouslySetInnerHTML={{ __html: `${JSON.stringify(JSONLD)}` }}
         >
         </script>
-        <link rel="stylesheet" href="/styles.css" />
+        {/* <script dangerouslySetInnerHTML={{__html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+              });
+            });
+          }
+        `}}></script> */}
       </head>
       <body>
         <Component />
