@@ -26,10 +26,11 @@ export default function DebateForm() {
   } = useDebateState();
 
   const {
-    isPlaying,
-    isLoading,
-    handlePlayPause,
-  } = useAudioControls(debate, agentDetails);
+  isPlaying,
+  isLoading: isAudioLoading,
+  isSynthesizingAudio,
+  handlePlayPause,
+} = useAudioControls(debate, agentDetails);
 
   return (
     <div>
@@ -53,8 +54,10 @@ export default function DebateForm() {
 
       {isDebateFinished && (
         <AudioControls
-          debate={debate}
-          agentDetails={agentDetails}
+          isPlaying={isPlaying}
+          isLoading={isAudioLoading}
+          isSynthesizingAudio={isSynthesizingAudio}
+          handlePlayPause={handlePlayPause}
         />
       )}
 

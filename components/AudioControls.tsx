@@ -1,23 +1,53 @@
-import { useAudioControls } from 'hooks/useAudioControls.ts';
-import type { Personality } from 'lib/debate/personalities.ts';
+import { useEffect, useState } from 'preact/hooks';
 
 interface AudioControlsProps {
-  debate: Array<{ role: string; content: string }>;
-  agentDetails: Required<Personality>[];
+  isPlaying: boolean;
+  isLoading: boolean;
+  isSynthesizingAudio: boolean;
+  handlePlayPause: () => void;
 }
 
-export default function AudioControls({ debate, agentDetails }: AudioControlsProps) {
-  const { isPlaying, isLoading, isSynthesizingAudio, handlePlayPause } = useAudioControls(debate, agentDetails);
+export default function AudioControls({ isPlaying, isLoading, isSynthesizingAudio, handlePlayPause }: AudioControlsProps) {
+  const [isPaused, setIsPaused] = useState(false);
+  const [buttonState, setButtonState] = useState<'play' | 'pause' | 'resume' | 'loading'>('play');
 
-  const buttonText = isPlaying ? 'Pause' : isLoading || isSynthesizingAudio ? 'Loading...' : 'Listen to Debate';
+  useEffect(() => {
+    if (isLoading || isSynthesizingAudio) {
+      setButtonState('loading');
+    } else if (isPlaying) {
+      setButtonState('pause');
+    } else {
+      setButtonState(buttonState === 'pause' ? 'resume' : 'play');
+    }
+  }, [isPlaying, isLoading, isSynthesizingAudio]);
+
+  const getButtonText = () => {
+    switch (buttonState) {
+      case 'play': return 'Listen to Debate';
+      case 'pause': return 'Pause';
+      case 'resume': return 'Resume';
+      case 'loading': return 'Loading...';
+    }
+  };
+
+  const handleClick = () => {
+    if (isPlaying || isPaused) {
+      setIsPaused(!isPaused);
+    }
+    handlePlayPause();
+  };
 
   return (
     <button
-      onClick={handlePlayPause}
-      disabled={isLoading || isSynthesizingAudio}
-      className={`w-full mt-2 px-4 py-2 rounded ${isPlaying ? 'bg-yellow-500' : 'bg-green-500'} text-white font-bold`}
+      onClick={handleClick}
+      disabled={buttonState === 'loading'}
+      className={`w-full mt-2 px-4 py-2 rounded text-white font-bold ${
+        buttonState === 'pause' ? 'bg-yellow-400' :
+        buttonState === 'loading' ? 'bg-gray-500 cursor-not-allowed' :
+        'bg-green-400'
+      }`}
     >
-      {buttonText}
+      {getButtonText()}
     </button>
   );
 }
