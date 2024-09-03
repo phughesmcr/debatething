@@ -134,20 +134,22 @@ export function useDebateState() {
             const jsonData = line.slice(6); // Remove 'data: ' prefix
             if (jsonData.trim() === "[DONE]") {
               setIsDebateFinished(true);
-              if (currentMessage) {
-                setDebate((prevDebate) => [...prevDebate, currentMessage as { role: string; content: string }]);
-              }
             } else {
               try {
                 const message = JSON.parse(jsonData);
-                if (currentMessage && message.role && message.role !== currentMessage.role) {
-                  setDebate((prevDebate) => [...prevDebate, currentMessage as { role: string; content: string }]);
-                  currentMessage = message;
-                } else if (!currentMessage) {
-                  currentMessage = message;
-                } else {
-                  currentMessage.content += message.content;
-                }
+                setDebate((prevDebate) => {
+                  const lastMessage = prevDebate[prevDebate.length - 1];
+                  if (lastMessage && lastMessage.role === message.role) {
+                    // Update the content of the last message
+                    return [
+                      ...prevDebate.slice(0, -1),
+                      { ...lastMessage, content: lastMessage.content + message.content }
+                    ];
+                  } else {
+                    // Add a new message
+                    return [...prevDebate, message];
+                  }
+                });
               } catch (error) {
                 console.error("Error parsing JSON:", error);
               }
@@ -177,7 +179,8 @@ export function useDebateState() {
       setIsDebateFinished(true);
     } catch (error) {
       if (error.name === "AbortError") {
-              } else {
+        console.log("Debate cancelled");
+      } else {
         console.error("Error in debate:", error);
         setErrors(["An error occurred while debating. Please try again."]);
       }

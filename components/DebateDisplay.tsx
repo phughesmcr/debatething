@@ -12,25 +12,6 @@ const DebateDisplay = ({
   agentDetails,
   isDebateFinished,
 }: DebateDisplayProps) => {
-  const [accumulatedDebate, setAccumulatedDebate] = useState<Array<{ role: string; content: string }>>([]);
-
-  useEffect(() => {
-    const newAccumulatedDebate = debate.reduce((acc, message) => {
-      if (message.role === "user") {
-        return acc;
-      }
-      const lastMessage = acc[acc.length - 1];
-      if (lastMessage && lastMessage.role === message.role) {
-        lastMessage.content += message.content;
-      } else {
-        acc.push({ ...message });
-      }
-      return acc;
-    }, [] as Array<{ role: string; content: string }>);
-
-    setAccumulatedDebate(newAccumulatedDebate);
-  }, [debate]);
-
   const getAgentColor = (stance: string): string => {
     switch (stance) {
       case "for":
@@ -48,7 +29,7 @@ const DebateDisplay = ({
     <div class="mt-8">
       <h2 class="text-2xl font-bold mb-6">Debate Results</h2>
       <div class="space-y-6">
-        {accumulatedDebate.map((message, index) => {
+        {debate.map((message, index) => {
           const isModerator = message.role === "system" || message.role === "moderator";
           const agent = isModerator ? null : agentDetails.find((a) => a.name === message.role);
 
