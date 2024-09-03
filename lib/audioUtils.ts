@@ -7,10 +7,10 @@ export const handleAudioSynthesis = async (
   voice: string,
   setIsLoading: (value: boolean) => void,
   setIsSynthesizingAudio: (value: boolean) => void
-): Promise<HTMLAudioElement> => {
+): Promise<[HTMLAudioElement, () => void]> => {
   setIsLoading(true);
   setIsSynthesizingAudio(true);
-    try {
+  try {
     const response = await fetch("/api/voicesynth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -25,6 +25,11 @@ export const handleAudioSynthesis = async (
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
 
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      audio.src = '';
+    };
+
     await new Promise((resolve, reject) => {
       audio.addEventListener('loadedmetadata', () => {
                 resolve(audio);
@@ -34,7 +39,7 @@ export const handleAudioSynthesis = async (
 
     setIsLoading(false);
     setIsSynthesizingAudio(false);
-    return audio;
+    return [audio, cleanup];
   } catch (error) {
     setIsLoading(false);
     setIsSynthesizingAudio(false);
@@ -70,13 +75,14 @@ export const processQueue = async (audioState: ReturnType<typeof useAudioState>)
 
     const { content, voice } = audioQueue[i];
     try {
-      const audio = await handleAudioSynthesis(content, voice, audioState.setIsLoading, audioState.setIsSynthesizingAudio);
+      const [audio, cleanup] = await handleAudioSynthesis(content, voice, audioState.setIsLoading, audioState.setIsSynthesizingAudio);
       if (isPaused) {
         setIsProcessingQueue(false);
         break;
       }
       setCurrentAudio(audio);
       await playAudio(audio, audioState);
+      cleanup();
       if (isPaused) {
         setIsProcessingQueue(false);
         break;

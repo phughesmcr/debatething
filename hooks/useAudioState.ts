@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 
 export const useAudioState = () => {
   const [audioQueue, setAudioQueue] = useState<Array<{ content: string; voice: string }>>([]);
@@ -10,15 +10,19 @@ export const useAudioState = () => {
   const [currentQueueIndex, setCurrentQueueIndex] = useState(0);
   const [isSynthesizingAudio, setIsSynthesizingAudio] = useState(false);
 
-  const resetAudioState = () => {
-    setAudioQueue([]);
-    setIsProcessingQueue(false);
-    setCurrentAudio(null);
-    setIsPaused(false);
-    setCurrentPlaybackPosition(0);
-    setCurrentQueueIndex(0);
-    setIsLoading(false);
-  };
+  const resetAudioState = useCallback(() => {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+  }
+  setAudioQueue([]);
+  setIsProcessingQueue(false);
+  setCurrentAudio(null);
+  setIsPaused(false);
+  setCurrentPlaybackPosition(0);
+  setCurrentQueueIndex(0);
+  setIsLoading(false);
+}, [currentAudio]);
 
   return {
     audioQueue,
