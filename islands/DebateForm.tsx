@@ -28,11 +28,11 @@ export default function DebateForm() {
   } = useDebateState();
 
   const {
-  isPlaying,
-  isLoading: isAudioLoading,
-  isSynthesizingAudio,
-  handlePlayPause,
-} = useAudioControls(debate, agentDetails);
+    isPlaying,
+    isLoading: isAudioLoading,
+    isSynthesizingAudio,
+    handlePlayPause,
+  } = useAudioControls(debate, agentDetails);
 
   return (
     <div>

@@ -8,19 +8,17 @@ interface AudioControlsProps {
 }
 
 export default function AudioControls({ isPlaying, isLoading, isSynthesizingAudio, handlePlayPause }: AudioControlsProps) {
-  const [isPaused, setIsPaused] = useState(false);
   const [buttonState, setButtonState] = useState<'play' | 'pause' | 'resume' | 'loading'>('play');
 
   useEffect(() => {
-    console.log('isLoading:', isLoading, 'isSynthesizingAudio:', isSynthesizingAudio, 'isPlaying:', isPlaying);
     if (isLoading || isSynthesizingAudio) {
       setButtonState('loading');
-    } else if (isPlaying && !isPaused) {
+    } else if (isPlaying) {
       setButtonState('pause');
     } else {
       setButtonState(buttonState === 'pause' ? 'resume' : 'play');
     }
-  }, [isPlaying, isLoading, isSynthesizingAudio, isPaused]);
+  }, [isPlaying, isLoading, isSynthesizingAudio]);
 
   const getButtonText = () => {
     switch (buttonState) {
@@ -32,10 +30,7 @@ export default function AudioControls({ isPlaying, isLoading, isSynthesizingAudi
   };
 
   const handleClick = () => {
-    if (isPlaying || isPaused) {
-      setIsPaused(!isPaused);
-    }
-    handlePlayPause();
+        handlePlayPause();
   };
 
   return (

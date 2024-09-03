@@ -1,50 +1,54 @@
-import {
-  hasAudioStarted,
-  isAudioLoading,
-  isPlaying,
-  pauseResumeAudio,
-  playFullDebate,
-  resetAudioState,
-  isSynthesizing
-} from 'lib/audioUtils.ts';
-import type { Personality } from 'lib/debate/personalities.ts';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { pauseResumeAudio, playFullDebate, processQueue } from "lib/audioUtils.ts";
+import { Personality } from "lib/debate/personalities.ts";
+import { useCallback, useEffect } from "preact/hooks";
+import { useAudioState } from "./useAudioState.ts";
 
-export function useAudioControls(debate: Array<{ role: string; content: string }>, agentDetails: Required<Personality>[]) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSynthesizingAudio, setIsSynthesizingAudio] = useState(false);
+export const useAudioControls = (
+  debate: Array<{ role: string; content: string }>,
+  agentDetails: Required<Personality>[]
+) => {
+  const audioState = useAudioState();
+  const {
+    isProcessingQueue,
+    isPaused,
+    isLoading,
+    isSynthesizingAudio,
+    audioQueue,
+    currentQueueIndex,
+    resetAudioState,
+    setIsPaused,
+    setIsProcessingQueue,
+  } = audioState;
+
+  const isPlaying = isProcessingQueue && !isPaused;
 
   useEffect(() => {
-    const checkStatus = () => {
-      setIsLoading(isAudioLoading());
-      setIsSynthesizingAudio(isSynthesizing());
+    return () => {
+      resetAudioState();
     };
-
-    const intervalId = setInterval(checkStatus, 100);
-    return () => clearInterval(intervalId);
   }, []);
 
-  const handlePlayPause = useCallback(async () => {
-    if (isPlaying()) {
-      pauseResumeAudio();
-    } else {
-      setIsLoading(true);
-      setIsSynthesizingAudio(true);
-      if (!hasAudioStarted()) {
-        resetAudioState();
-        await playFullDebate(debate, agentDetails);
-      } else {
-        pauseResumeAudio();
-      }
-      setIsLoading(false);
-      setIsSynthesizingAudio(false);
+  useEffect(() => {
+    if (audioQueue.length > 0 && !isProcessingQueue && !isPaused) {
+      processQueue(audioState);
     }
-  }, [debate, agentDetails]);
+  }, [audioQueue, isProcessingQueue, isPaused]);
+
+  const handlePlayPause = useCallback(() => {
+    if (audioQueue.length === 0 && currentQueueIndex === 0) {
+      playFullDebate(debate, agentDetails, audioState).then(() => {
+        setIsProcessingQueue(true);
+        processQueue(audioState);
+      });
+    } else {
+      pauseResumeAudio(audioState);
+    }
+  }, [debate, agentDetails, audioState, audioQueue, currentQueueIndex]);
 
   return {
-    isPlaying: isPlaying(),
+    isPlaying,
     isLoading,
     isSynthesizingAudio,
     handlePlayPause,
   };
-}
+};

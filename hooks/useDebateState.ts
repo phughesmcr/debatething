@@ -177,8 +177,7 @@ export function useDebateState() {
       setIsDebateFinished(true);
     } catch (error) {
       if (error.name === "AbortError") {
-        console.log("Fetch aborted");
-      } else {
+              } else {
         console.error("Error in debate:", error);
         setErrors(["An error occurred while debating. Please try again."]);
       }
