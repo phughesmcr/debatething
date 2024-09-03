@@ -35,6 +35,21 @@ export const handler: Handlers = {
     }
 
     try {
+      // Log debate details to KV database
+     /*  await kv.set(["debates", input.uuid], {
+        position: input.position,
+        context: input.context,
+        numAgents: input.numAgents,
+        agentDetails: input.agentDetails,
+        numDebateRounds: input.numDebateRounds,
+        enableModerator: input.enableModerator,
+        timestamp: new Date().toISOString(),
+      }); */
+    } catch (error) {
+      console.error("Error logging debate details:", error);
+    }
+
+    try {
       const stream = await conductDebateStream(input);
       if (!(stream instanceof ReadableStream)) {
         throw new Error("Invalid stream returned from conductDebateStream");

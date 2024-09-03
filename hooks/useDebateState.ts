@@ -24,6 +24,16 @@ export function useDebateState() {
   const [isDebateFinished, setIsDebateFinished] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [enableModerator, setEnableModerator] = useState(true);
+  const [userUUID, setUserUUID] = useState<string>("");
+
+  useEffect(() => {
+    let uuid = sessionStorage?.getItem("userUUID");
+    if (!uuid) {
+      uuid = crypto.randomUUID();
+      sessionStorage?.setItem("userUUID", uuid);
+    }
+    setUserUUID(uuid);
+  }, []);
 
   const updateAgentDetails = useCallback((count: number) => {
     const clampedCount = clamp(count, MIN_AGENTS, MAX_AGENTS);
@@ -67,7 +77,7 @@ export function useDebateState() {
       position: sanitizedPosition,
       numAgents,
       numDebateRounds,
-      uuid: "",
+      uuid: userUUID,
       enableModerator,
     });
 
@@ -87,12 +97,13 @@ export function useDebateState() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-        position: sanitizedPosition,
-        context: sanitizedContext,
-        numAgents,
-        numDebateRounds,
-        agentDetails,
+          position: sanitizedPosition,
+          context: sanitizedContext,
+          numAgents,
+          numDebateRounds,
+          agentDetails,
           enableModerator,
+          uuid: userUUID,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -176,7 +187,7 @@ export function useDebateState() {
       setIsDebating(false);
       abortControllerRef.current = null;
     }
-  }, [position, context, numAgents, numDebateRounds, agentDetails]);
+  }, [position, context, numAgents, numDebateRounds, agentDetails, enableModerator, userUUID]);
 
   const cancelDebate = useCallback(() => {
     if (abortControllerRef.current) {
@@ -216,5 +227,6 @@ export function useDebateState() {
     updateAgentDetails,
     enableModerator,
     setEnableModerator,
+    userUUID,
   };
 }

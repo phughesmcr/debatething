@@ -19,8 +19,8 @@
     "Joining our discussion is {name}. They are {stance} the position.\n",
     "We have {name}. Their stance is {stance} the position.\n",
     "Allow me to introduce {name}. They stand {stance} the position.\n",
-    "Our next participant is {name}. They come to us {stance} the position.\n",
-    "{name} joins us next, who is {stance} the position.\n",
+    "Welcome {name}. They come to us {stance} the position.\n",
+    "{name} joins us, who is {stance} the position.\n",
     "Let's hear it for {name}. They enter this debate {stance} the position.\n"
   ],
   "openingStatement": [
