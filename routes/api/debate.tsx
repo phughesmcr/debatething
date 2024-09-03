@@ -1,6 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { conductDebateStream } from "lib/debate/debate.ts";
 import { validateDebateInput } from "lib/debate/inputValidation.ts";
+import { compressJson, kv } from "lib/kv.ts";
 
 export interface AgentDetails {
   name: string;
@@ -35,16 +36,17 @@ export const handler: Handlers = {
     }
 
     try {
-      // Log debate details to KV database
-     /*  await kv.set(["debates", input.uuid], {
+      const timestamp = new Date().toISOString();
+      const data = JSON.stringify({
         position: input.position,
         context: input.context,
         numAgents: input.numAgents,
         agentDetails: input.agentDetails,
         numDebateRounds: input.numDebateRounds,
         enableModerator: input.enableModerator,
-        timestamp: new Date().toISOString(),
-      }); */
+        timestamp,
+      });
+      await kv.set(["debates", input.uuid, timestamp], compressJson(data));
     } catch (error) {
       console.error("Error logging debate details:", error);
     }

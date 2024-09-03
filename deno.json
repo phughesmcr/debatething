@@ -36,7 +36,8 @@
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
-    "hooks/": "./hooks/"
+    "hooks/": "./hooks/",
+    "brotli": "https://deno.land/x/brotli/mod.ts"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
