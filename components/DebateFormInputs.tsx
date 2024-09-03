@@ -8,7 +8,6 @@ import {
   MIN_DEBATE_ROUNDS,
 } from "lib/debate/inputValidation.ts";
 import { Personality } from "lib/debate/personalities.ts";
-import { FunctionComponent } from "preact";
 
 
 interface DebateFormInputsProps {
@@ -27,6 +26,8 @@ interface DebateFormInputsProps {
   isDebating: boolean;
   handleSubmit: (e: Event) => void;
   cancelDebate: () => void;
+  enableModerator: boolean;
+  setEnableModerator: (value: boolean) => void;
 }
 
 const EXAMPLE_POSITIONS = [
@@ -42,7 +43,7 @@ const EXAMPLE_POSITIONS = [
   "Coffee is better than sleep",
 ];
 
-const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
+const DebateFormInputs = ({
   position,
   setPosition,
   numAgents,
@@ -60,7 +61,7 @@ const DebateFormInputs: FunctionComponent<DebateFormInputsProps> = ({
   cancelDebate,
   enableModerator,
   setEnableModerator,
-}) => {
+}: DebateFormInputsProps) => {
   return (
     <form
       onSubmit={(e) => {

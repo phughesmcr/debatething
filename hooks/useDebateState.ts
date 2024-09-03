@@ -187,7 +187,7 @@ export function useDebateState() {
       setIsDebating(false);
       abortControllerRef.current = null;
     }
-  }, [position, context, numAgents, numDebateRounds, agentDetails, enableModerator, userUUID]);
+  }, [position, numAgents, numDebateRounds, agentDetails, enableModerator, userUUID]);
 
   const cancelDebate = useCallback(() => {
     if (abortControllerRef.current) {
@@ -196,8 +196,12 @@ export function useDebateState() {
       setLoading(false);
       setDebate([]);
       setIsDebateFinished(false);
+      setErrors([]);
+      setPosition("");
+      setContext("");
+      updateAgentDetails(numAgents);
     }
-  }, []);
+  }, [numAgents, updateAgentDetails]);
 
   const safeSetNumDebateRounds = useCallback((value: number | string) => {
     const parsedValue = parseInt(value as string, 10);
