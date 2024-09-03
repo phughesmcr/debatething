@@ -12,14 +12,15 @@ export default function AudioControls({ isPlaying, isLoading, isSynthesizingAudi
   const [buttonState, setButtonState] = useState<'play' | 'pause' | 'resume' | 'loading'>('play');
 
   useEffect(() => {
+    console.log('isLoading:', isLoading, 'isSynthesizingAudio:', isSynthesizingAudio, 'isPlaying:', isPlaying);
     if (isLoading || isSynthesizingAudio) {
       setButtonState('loading');
-    } else if (isPlaying) {
+    } else if (isPlaying && !isPaused) {
       setButtonState('pause');
     } else {
       setButtonState(buttonState === 'pause' ? 'resume' : 'play');
     }
-  }, [isPlaying, isLoading, isSynthesizingAudio]);
+  }, [isPlaying, isLoading, isSynthesizingAudio, isPaused]);
 
   const getButtonText = () => {
     switch (buttonState) {
