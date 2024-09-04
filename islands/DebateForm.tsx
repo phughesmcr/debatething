@@ -24,7 +24,7 @@ export default function DebateForm() {
     handleSubmit,
     cancelDebate,
     moderatorVoice,
-    setModeratorVoice
+    setModeratorVoice,
   } = useDebateState();
 
   const {
@@ -54,7 +54,6 @@ export default function DebateForm() {
         cancelDebate={cancelDebate}
         moderatorVoice={moderatorVoice}
         setModeratorVoice={setModeratorVoice}
-
       />
 
       {isDebateFinished && (

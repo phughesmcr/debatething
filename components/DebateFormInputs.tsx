@@ -129,15 +129,15 @@ const DebateFormInputs = ({
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="none">No Moderator</option>
-            {voiceTypes.map((voice) => (
-              <option key={voice} value={voice}>{voice}</option>
-            ))}
+            {voiceTypes.map((voice) => <option key={voice} value={voice}>{voice}</option>)}
           </select>
         </div>
       </div>
 
       <details class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-        <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Customization & Participant Settings</summary>
+        <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+          Customization & Participant Settings
+        </summary>
         <div class="mt-4 space-y-6">
           <div>
             <label htmlFor="context" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -166,7 +166,10 @@ const DebateFormInputs = ({
       </details>
 
       {errors.length > 0 && (
-        <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-md" role="alert">
+        <div
+          class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-md"
+          role="alert"
+        >
           <ul class="list-disc list-inside">
             {errors.map((error, index) => <li key={index}>{error}</li>)}
           </ul>
@@ -174,25 +177,27 @@ const DebateFormInputs = ({
       )}
 
       <div class="flex justify-between">
-        {isDebating ? (
-          <button
-            type="button"
-            onClick={cancelDebate}
-            class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
-          >
-            Cancel Debate
-          </button>
-        ) : (
-          <button
-            type="submit"
-            disabled={loading}
-            class={`w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            Start Debate
-          </button>
-        )}
+        {isDebating
+          ? (
+            <button
+              type="button"
+              onClick={cancelDebate}
+              class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
+            >
+              Cancel Debate
+            </button>
+          )
+          : (
+            <button
+              type="submit"
+              disabled={loading}
+              class={`w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Start Debate
+            </button>
+          )}
       </div>
     </form>
   );

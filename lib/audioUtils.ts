@@ -1,12 +1,12 @@
 import { useAudioState } from "hooks/useAudioState.ts";
 import { Personality } from "lib/debate/personalities.ts";
-import { VoiceType, isValidVoice } from "routes/api/voicesynth.tsx";
+import { isValidVoice, VoiceType } from "routes/api/voicesynth.tsx";
 
 export const handleAudioSynthesis = async (
   content: string,
   voice: string,
   setIsLoading: (value: boolean) => void,
-  setIsSynthesizingAudio: (value: boolean) => void
+  setIsSynthesizingAudio: (value: boolean) => void,
 ): Promise<[HTMLAudioElement, () => void]> => {
   setIsLoading(true);
   setIsSynthesizingAudio(true);
@@ -27,14 +27,14 @@ export const handleAudioSynthesis = async (
 
     const cleanup = () => {
       URL.revokeObjectURL(url);
-      audio.src = '';
+      audio.src = "";
     };
 
     await new Promise((resolve, reject) => {
-      audio.addEventListener('loadedmetadata', () => {
-                resolve(audio);
+      audio.addEventListener("loadedmetadata", () => {
+        resolve(audio);
       });
-      audio.addEventListener('error', (e) => reject(new Error(`Audio failed to load: ${e.message}`)));
+      audio.addEventListener("error", (e) => reject(new Error(`Audio failed to load: ${e.message}`)));
     });
 
     setIsLoading(false);
@@ -75,7 +75,12 @@ export const processQueue = async (audioState: ReturnType<typeof useAudioState>)
 
     const { content, voice } = audioQueue[i];
     try {
-      const [audio, cleanup] = await handleAudioSynthesis(content, voice, audioState.setIsLoading, audioState.setIsSynthesizingAudio);
+      const [audio, cleanup] = await handleAudioSynthesis(
+        content,
+        voice,
+        audioState.setIsLoading,
+        audioState.setIsSynthesizingAudio,
+      );
       if (isPaused) {
         setIsProcessingQueue(false);
         break;
@@ -103,7 +108,7 @@ export const processQueue = async (audioState: ReturnType<typeof useAudioState>)
 
 const playAudio = (audio: HTMLAudioElement, audioState: ReturnType<typeof useAudioState>): Promise<void> => {
   return new Promise((resolve) => {
-    audio.addEventListener('ended', () => resolve(), { once: true });
+    audio.addEventListener("ended", () => resolve(), { once: true });
     audio.currentTime = audioState.currentPlaybackPosition;
     audio.play().catch(console.error);
   });
@@ -131,9 +136,16 @@ export const pauseResumeAudio = (audioState: ReturnType<typeof useAudioState>) =
 export const playFullDebate = async (
   debate: Array<{ role: string; content: string }>,
   agentDetails: Required<Personality>[],
-  audioState: ReturnType<typeof useAudioState>
+  audioState: ReturnType<typeof useAudioState>,
 ) => {
-  const { setIsPaused, setCurrentPlaybackPosition, setCurrentQueueIndex, setAudioQueue, setIsLoading, setIsSynthesizingAudio } = audioState;
+  const {
+    setIsPaused,
+    setCurrentPlaybackPosition,
+    setCurrentQueueIndex,
+    setAudioQueue,
+    setIsLoading,
+    setIsSynthesizingAudio,
+  } = audioState;
 
   setIsPaused(false);
   setCurrentPlaybackPosition(0);

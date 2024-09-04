@@ -14,25 +14,44 @@ export default function Home() {
         DebateThing.com is an experimental tool for creating simulated debates.{" "}
         It uses OpenAI's GPT-4o-Mini model to generate debates and TTS-1 to synthesize voice audio.{" "}
         <span class="font-semibold">
-          Remember, AI can make mistakes and even hallucinate.{" "}
-          Don't believe everything you read or hear.{" "}
+          Remember, AI can make mistakes and even hallucinate. Don't believe everything you read or hear.{" "}
         </span>
       </p>
       <p class="text-sm text-gray-500 mb-3">
         DebateThing is{" "}
-        <a href="https://github.com/phughesmcr/debatething" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+        <a
+          href="https://github.com/phughesmcr/debatething"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-blue-500 hover:underline cursor-pointer"
+        >
           Open Source,{" "}
         </a>
         made with{" "}
-        <a href="http://fresh.deno.dev" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+        <a
+          href="http://fresh.deno.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-blue-500 hover:underline cursor-pointer"
+        >
           Deno Fresh
         </a>
         , and hosted on{" "}
-        <a href="https://www.deno.com/deploy" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+        <a
+          href="https://www.deno.com/deploy"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-blue-500 hover:underline cursor-pointer"
+        >
           Deno Deploy
         </a>
         .{" "}
-        <a href="http://phugh.es" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline cursor-pointer">
+        <a
+          href="http://phugh.es"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-blue-500 hover:underline cursor-pointer"
+        >
           Hire me
         </a>
         .

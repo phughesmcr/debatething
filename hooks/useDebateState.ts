@@ -163,7 +163,7 @@ export function useDebateState() {
                     // Update the content of the last message
                     return [
                       ...prevDebate.slice(0, -1),
-                      { ...lastMessage, content: lastMessage.content + message.content }
+                      { ...lastMessage, content: lastMessage.content + message.content },
                     ];
                   } else {
                     // Add a new message

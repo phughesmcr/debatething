@@ -84,7 +84,8 @@ export default function App({ Component }: PageProps) {
           dangerouslySetInnerHTML={{ __html: `${JSON.stringify(JSONLD)}` }}
         >
         </script>
-        {/* <script dangerouslySetInnerHTML={{__html: `
+        {
+          /* <script dangerouslySetInnerHTML={{__html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
               navigator.serviceWorker.register('/sw.js').then(function(registration) {
@@ -94,7 +95,8 @@ export default function App({ Component }: PageProps) {
               });
             });
           }
-        `}}></script> */}
+        `}}></script> */
+        }
       </head>
       <body>
         <Component />

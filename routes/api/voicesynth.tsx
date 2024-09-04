@@ -102,8 +102,8 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         throw new Error("No response from speech service");
       }
 
-      const contentType = audioResponse.headers.get('content-type');
-      const audioFormat = contentType ? contentType.split('/')[1] : 'mp3';
+      const contentType = audioResponse.headers.get("content-type");
+      const audioFormat = contentType ? contentType.split("/")[1] : "mp3";
 
       // Return the audio data as an ArrayBuffer instead of base64
       const audioBuffer = await audioResponse.arrayBuffer();

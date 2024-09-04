@@ -25,7 +25,7 @@ export interface DebateRequest {
 export type DebateResponse = ReadableStream | { errors: string[] };
 
 export const handler: Handlers = {
-  async POST(req, ctx) {
+  async POST(req, _ctx) {
     const csrfToken = req.headers.get("X-CSRF-Token");
 
     if (!csrfToken) {

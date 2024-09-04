@@ -1,6 +1,11 @@
 import type { FreshContext } from "$fresh/server.ts";
 
-const ALLOWED_ORIGINS = ["https://debatething.com", "https://www.debatething.com", "https://debate-machine-69-e3582j0hsdtk.deno.dev", "https://debate-machine-69.deno.dev/"];
+const ALLOWED_ORIGINS = [
+  "https://debatething.com",
+  "https://www.debatething.com",
+  "https://debate-machine-69-e3582j0hsdtk.deno.dev",
+  "https://debate-machine-69.deno.dev/",
+];
 
 function setCorsHeaders(headers: Headers, origin: string): void {
   if (ALLOWED_ORIGINS.includes(origin)) {

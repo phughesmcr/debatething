@@ -11,18 +11,18 @@ export const useAudioState = () => {
   const [isSynthesizingAudio, setIsSynthesizingAudio] = useState(false);
 
   const resetAudioState = useCallback(() => {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-  }
-  setAudioQueue([]);
-  setIsProcessingQueue(false);
-  setCurrentAudio(null);
-  setIsPaused(false);
-  setCurrentPlaybackPosition(0);
-  setCurrentQueueIndex(0);
-  setIsLoading(false);
-}, [currentAudio]);
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+    }
+    setAudioQueue([]);
+    setIsProcessingQueue(false);
+    setCurrentAudio(null);
+    setIsPaused(false);
+    setCurrentPlaybackPosition(0);
+    setCurrentQueueIndex(0);
+    setIsLoading(false);
+  }, [currentAudio]);
 
   return {
     audioQueue,

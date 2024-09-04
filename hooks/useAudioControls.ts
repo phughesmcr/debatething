@@ -5,7 +5,7 @@ import { useAudioState } from "./useAudioState.ts";
 
 export const useAudioControls = (
   debate: Array<{ role: string; content: string }>,
-  agentDetails: Required<Personality>[]
+  agentDetails: Required<Personality>[],
 ) => {
   const audioState = useAudioState();
   const {

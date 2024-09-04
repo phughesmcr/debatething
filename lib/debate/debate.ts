@@ -57,7 +57,7 @@ export function conductDebateStream(request: DebateRequest) {
             encoder,
             currentAgent.name,
             uuid,
-            abortController.signal
+            abortController.signal,
           );
 
           debateHistory.push({ role: "assistant", content: fullContent });
@@ -73,7 +73,8 @@ export function conductDebateStream(request: DebateRequest) {
             const currentAgent = agentDetails[agentNum];
             moderator?.requestResponse(currentAgent.name);
 
-            const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
+            const userPrompt =
+              `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
             const messages: ChatCompletionMessageParam[] = [...debateHistory];
@@ -84,7 +85,7 @@ export function conductDebateStream(request: DebateRequest) {
               encoder,
               currentAgent.name,
               uuid,
-              abortController.signal
+              abortController.signal,
             );
 
             debateHistory.push({ role: "assistant", content: fullContent });
@@ -100,7 +101,8 @@ export function conductDebateStream(request: DebateRequest) {
           const currentAgent = agentDetails[agentNum];
           moderator?.requestConcludingStatement(currentAgent.name);
 
-          const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
+          const userPrompt =
+            `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
 
           const messages: ChatCompletionMessageParam[] = [...debateHistory];
@@ -111,7 +113,7 @@ export function conductDebateStream(request: DebateRequest) {
             encoder,
             currentAgent.name,
             uuid,
-            abortController.signal
+            abortController.signal,
           );
 
           debateHistory.push({ role: "assistant", content: fullContent });
@@ -143,7 +145,7 @@ export function conductDebateStream(request: DebateRequest) {
     },
     cancel() {
       abortController.abort();
-    }
+    },
   });
 
   return stream;

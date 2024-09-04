@@ -64,7 +64,7 @@ export async function makeAPIRequest(
   encoder: TextEncoder,
   agentName: string,
   uuid: string,
-  signal: AbortSignal
+  signal: AbortSignal,
 ) {
   let retries = 0;
   while (retries < MAX_RETRIES) {
