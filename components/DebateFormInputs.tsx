@@ -71,7 +71,7 @@ const DebateFormInputs = ({
       class="space-y-6"
     >
       <div>
-        <label htmlFor="position" class="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Debate Position
         </label>
         <input
@@ -82,14 +82,14 @@ const DebateFormInputs = ({
           minLength={4}
           maxLength={MAX_POSITION_LENGTH}
           onInput={(e) => setPosition((e.target as HTMLInputElement).value)}
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           required
         />
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label htmlFor="numAgents" class="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="numAgents" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Number of Participants
           </label>
           <input
@@ -99,12 +99,12 @@ const DebateFormInputs = ({
             onInput={(e) => setNumAgents(parseInt((e.target as HTMLInputElement).value, 10))}
             min={MIN_AGENTS}
             max={MAX_AGENTS}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             required
           />
         </div>
         <div>
-          <label htmlFor="numDebateRounds" class="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="numDebateRounds" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Number of Debate Rounds
           </label>
           <input
@@ -114,19 +114,19 @@ const DebateFormInputs = ({
             onInput={(e) => setNumDebateRounds(parseInt((e.target as HTMLInputElement).value, 10))}
             min={MIN_DEBATE_ROUNDS}
             max={MAX_DEBATE_ROUNDS}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             required
           />
         </div>
         <div>
-          <label htmlFor="moderatorVoice" class="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="moderatorVoice" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Moderator Voice
           </label>
           <select
             id="moderatorVoice"
             value={moderatorVoice}
             onChange={(e) => setModeratorVoice(e.target.value as VoiceType | "none")}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="none">No Moderator</option>
             {voiceTypes.map((voice) => (
@@ -136,25 +136,25 @@ const DebateFormInputs = ({
         </div>
       </div>
 
-      <details class="bg-gray-50 p-3 rounded-lg">
-        <summary class="font-medium text-gray-700 cursor-pointer">Customization & Participant Settings</summary>
+      <details class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+        <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Customization & Participant Settings</summary>
         <div class="mt-4 space-y-6">
           <div>
-            <label htmlFor="context" class="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="context" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Additional Context (optional)
             </label>
             <textarea
               id="context"
               value={context}
               onInput={(e) => setContext((e.target as HTMLTextAreaElement).value)}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               rows={3}
               maxLength={MAX_DEBATE_CONTEXT_LENGTH}
             />
           </div>
 
           <div>
-            <h3 class="text-lg font-medium text-gray-700 mb-4">Participant Details</h3>
+            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4">Participant Details</h3>
             {agentDetails.length > 0 && (
               <AgentSelector
                 agentDetails={agentDetails}
@@ -166,7 +166,7 @@ const DebateFormInputs = ({
       </details>
 
       {errors.length > 0 && (
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md" role="alert">
+        <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-md" role="alert">
           <ul class="list-disc list-inside">
             {errors.map((error, index) => <li key={index}>{error}</li>)}
           </ul>
