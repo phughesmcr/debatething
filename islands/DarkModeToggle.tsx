@@ -21,7 +21,8 @@ export default function DarkModeToggle() {
       onClick={toggleDarkMode}
       class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
     >
-      {isDarkMode ? '🌙' : '☀️'}
+      {!isDarkMode ? '🌙' : '☀️'}
+      <span class="sr-only">Toggle Dark Mode</span>
     </button>
   );
 }
