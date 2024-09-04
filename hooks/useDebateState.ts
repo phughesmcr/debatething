@@ -199,7 +199,7 @@ export function useDebateState() {
       setIsDebateFinished(true);
     } catch (error) {
       if (error.name === "AbortError") {
-        console.log("Debate cancelled");
+        // Debate cancelled
       } else {
         console.error("Error in debate:", error);
         setErrors(["An error occurred while debating. Please try again."]);

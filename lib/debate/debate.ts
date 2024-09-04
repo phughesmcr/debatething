@@ -18,6 +18,7 @@ export function conductDebateStream(request: DebateRequest) {
   } = request;
 
   const encoder = new TextEncoder();
+  const abortController = new AbortController();
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -56,6 +57,7 @@ export function conductDebateStream(request: DebateRequest) {
             encoder,
             currentAgent.name,
             uuid,
+            abortController.signal
           );
 
           debateHistory.push({ role: "assistant", content: fullContent });
@@ -71,7 +73,6 @@ export function conductDebateStream(request: DebateRequest) {
             const currentAgent = agentDetails[agentNum];
             moderator?.requestResponse(currentAgent.name);
 
-            // deno-fmt-ignore
             const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
             debateHistory.push({ role: "user", content: userPrompt });
 
@@ -83,6 +84,7 @@ export function conductDebateStream(request: DebateRequest) {
               encoder,
               currentAgent.name,
               uuid,
+              abortController.signal
             );
 
             debateHistory.push({ role: "assistant", content: fullContent });
@@ -98,7 +100,6 @@ export function conductDebateStream(request: DebateRequest) {
           const currentAgent = agentDetails[agentNum];
           moderator?.requestConcludingStatement(currentAgent.name);
 
-          // deno-fmt-ignore
           const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
           debateHistory.push({ role: "user", content: userPrompt });
 
@@ -110,6 +111,7 @@ export function conductDebateStream(request: DebateRequest) {
             encoder,
             currentAgent.name,
             uuid,
+            abortController.signal
           );
 
           debateHistory.push({ role: "assistant", content: fullContent });
@@ -122,22 +124,26 @@ export function conductDebateStream(request: DebateRequest) {
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (error) {
-        console.error("Error in conductDebateStream:", error);
-        controller.enqueue(
-          encoder.encode(
-            `data: ${
-              JSON.stringify({
-                role: "system",
-                content: `Error: ${error.message}`,
-              })
-            }\n\n`,
-          ),
-        );
-        controller.error(error);
+        if (error.message !== "Debate cancelled") {
+          console.error("Error in conductDebateStream:", error);
+          controller.enqueue(
+            encoder.encode(
+              `data: ${
+                JSON.stringify({
+                  role: "system",
+                  content: `Error: ${error.message}`,
+                })
+              }\n\n`,
+            ),
+          );
+        }
       } finally {
         controller.close();
       }
     },
+    cancel() {
+      abortController.abort();
+    }
   });
 
   return stream;

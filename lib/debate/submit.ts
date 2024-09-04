@@ -64,6 +64,7 @@ export async function makeAPIRequest(
   encoder: TextEncoder,
   agentName: string,
   uuid: string,
+  signal: AbortSignal
 ) {
   let retries = 0;
   while (retries < MAX_RETRIES) {
@@ -81,13 +82,16 @@ export async function makeAPIRequest(
 
       let fullContent = "";
       for await (const part of response) {
+        if (signal.aborted) {
+          throw new Error("Debate cancelled");
+        }
         const content = trimAgentPrefix(
           part.choices[0]?.delta?.content || "",
           agentName,
         );
         const finishReason = part.choices[0]?.finish_reason;
 
-        if (content) {
+        if (content && !controller.desiredSize) {
           fullContent += content;
           controller.enqueue(
             encoder.encode(
@@ -97,7 +101,7 @@ export async function makeAPIRequest(
         }
 
         if (finishReason) {
-          if (finishReason !== "stop") {
+          if (finishReason !== "stop" && !controller.desiredSize) {
             controller.enqueue(
               encoder.encode(
                 `data: ${
@@ -115,6 +119,9 @@ export async function makeAPIRequest(
 
       return fullContent;
     } catch (error) {
+      if (error.message === "Debate cancelled") {
+        throw error;
+      }
       if (
         error instanceof Error && error.message.includes("Rate limit exceeded")
       ) {
