@@ -91,7 +91,7 @@ export async function makeAPIRequest(
         );
         const finishReason = part.choices[0]?.finish_reason;
 
-        if (content && !controller.desiredSize) {
+        if (content) {
           fullContent += content;
           controller.enqueue(
             encoder.encode(
@@ -101,7 +101,7 @@ export async function makeAPIRequest(
         }
 
         if (finishReason) {
-          if (finishReason !== "stop" && !controller.desiredSize) {
+          if (finishReason !== "stop") {
             controller.enqueue(
               encoder.encode(
                 `data: ${
