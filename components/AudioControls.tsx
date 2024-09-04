@@ -48,7 +48,7 @@ export default function AudioControls(
           ? "bg-yellow-400"
           : buttonState === "loading"
           ? "bg-gray-500 cursor-not-allowed"
-          : "bg-green-400"
+          : "bg-green-500"
       }`}
     >
       {getButtonText()}
