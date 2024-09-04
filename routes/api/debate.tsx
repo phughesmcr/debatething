@@ -25,7 +25,16 @@ export interface DebateRequest {
 export type DebateResponse = ReadableStream | { errors: string[] };
 
 export const handler: Handlers = {
-  async POST(req) {
+  async POST(req, ctx) {
+    const csrfToken = req.headers.get("X-CSRF-Token");
+
+    if (!csrfToken) {
+      return new Response(JSON.stringify({ error: "Missing CSRF token" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const input = await req.json() as DebateRequest;
 
     const { errors, valid } = validateDebateInput(input);
@@ -60,8 +69,9 @@ export const handler: Handlers = {
       return new Response(stream, {
         headers: {
           "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache; no-store;",
           "Connection": "keep-alive",
+          "X-Content-Type-Options": "nosniff",
         },
       });
     } catch (error) {

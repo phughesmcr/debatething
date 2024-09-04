@@ -1,6 +1,6 @@
 import type { Handlers } from "$fresh/server.ts";
-import { agent } from "lib/agent.ts";
 import { encodeBase64 } from "@std/encoding";
+import { agent } from "lib/agent.ts";
 
 /**
  * @module voicesynth
@@ -112,9 +112,11 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         audioBuffer,
         {
           status: 200,
-          headers: { 
+          headers: {
             "Content-Type": `audio/${audioFormat}`,
-            "Content-Disposition": "attachment; filename=speech.mp3"
+            "Content-Disposition": "attachment; filename=speech.mp3",
+            "Cache-Control": "no-cache; no-store;",
+            "X-Content-Type-Options": "nosniff",
           },
         },
       );

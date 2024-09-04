@@ -93,9 +93,29 @@ export function useDebateState() {
     abortControllerRef.current = new AbortController();
 
     try {
+      // First, make a GET request to obtain the CSRF token
+      const tokenResponse = await fetch("/api/csrf-token", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error(`HTTP error! status: ${tokenResponse.status}`);
+      }
+
+      const csrfToken = tokenResponse.headers.get("X-CSRF-Token");
+
+      if (!csrfToken) {
+        throw new Error("Failed to obtain CSRF token");
+      }
+
+      // Now make the actual POST request with the CSRF token
       const response = await fetch("/api/debate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
         body: JSON.stringify({
           position: sanitizedPosition,
           context: sanitizedContext,

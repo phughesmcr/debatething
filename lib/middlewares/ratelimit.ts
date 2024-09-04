@@ -55,6 +55,7 @@ export default async function handler(req: Request, ctx: FreshContext) {
           "X-RateLimit-Limit": MAX_REQUESTS.toString(),
           "X-RateLimit-Remaining": "0",
           "X-RateLimit-Reset": (now + WINDOW_SIZE).toString(),
+          "Retry-After": "60",
         },
       },
     );
