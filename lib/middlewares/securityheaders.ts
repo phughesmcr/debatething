@@ -17,8 +17,7 @@ const SECURITY_HEADERS = {
     "accelerometer=(), camera=(), encrypted-media=(), gyroscope=(), interest-cohort=(), microphone=(), magnetometer=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), sync-xhr=(), usb=(), xr-spatial-tracking=(), geolocation=()",
   "Content-Security-Policy":
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; media-src 'self' data: blob:;",
-  "Expect-CT": "max-age=86400, enforce",
-  "Feature-Policy": "camera 'none'; microphone 'none'; geolocation 'none'",
+  "Expect-CT": "max-age=86400, enforce"
 };
 
 function setSecurityHeaders(headers: Headers): void {
