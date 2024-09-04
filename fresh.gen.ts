@@ -9,6 +9,7 @@ import * as $api_debate from "./routes/api/debate.tsx";
 import * as $api_voicesynth from "./routes/api/voicesynth.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $AgentSelector from "./islands/AgentSelector.tsx";
+import * as $DarkModeToggle from "./islands/DarkModeToggle.tsx";
 import * as $DebateForm from "./islands/DebateForm.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
@@ -23,6 +24,7 @@ const manifest = {
   },
   islands: {
     "./islands/AgentSelector.tsx": $AgentSelector,
+    "./islands/DarkModeToggle.tsx": $DarkModeToggle,
     "./islands/DebateForm.tsx": $DebateForm,
   },
   baseUrl: import.meta.url,
