@@ -16,7 +16,6 @@ export const useAudioControls = (
     audioQueue,
     currentQueueIndex,
     resetAudioState,
-    setIsPaused,
     setIsProcessingQueue,
   } = audioState;
 

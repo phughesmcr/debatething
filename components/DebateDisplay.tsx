@@ -1,5 +1,4 @@
 import { Personality } from "lib/debate/personalities.ts";
-import { useEffect, useState } from "preact/hooks";
 
 interface DebateDisplayProps {
   debate: Array<{ role: string; content: string }>;

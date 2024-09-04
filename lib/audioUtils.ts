@@ -133,7 +133,7 @@ export const pauseResumeAudio = (audioState: ReturnType<typeof useAudioState>) =
   }
 };
 
-export const playFullDebate = async (
+export const playFullDebate = (
   debate: Array<{ role: string; content: string }>,
   agentDetails: Required<Personality>[],
   audioState: ReturnType<typeof useAudioState>,
