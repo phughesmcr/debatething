@@ -2,50 +2,54 @@ import type { FreshContext } from "$fresh/server.ts";
 
 const WINDOW_SIZE = 60 * 1000; // 1 minute in milliseconds
 const MAX_REQUESTS = 100; // Maximum requests per minute
+const MAX_BLOCKED_TIME = 30 * 60 * 1000; // 30 minutes in milliseconds
+const BLOCK_THRESHOLD = 5; // Number of rate limit violations before blocking
 
 interface RateLimitEntry {
-  timestamps: number[];
-  lastCleanup: number;
+  bucket: number;
+  lastRequest: number;
+  violations: number;
+  blockedUntil: number;
 }
 
-interface RateLimitStore {
-  [ip: string]: RateLimitEntry;
-}
-const store: RateLimitStore = {};
+const store = new Map<string, RateLimitEntry>();
 
-function cleanupStoreEntry(ip: string, now: number): void {
-  if (!store[ip]) return;
-
-  store[ip].timestamps = store[ip].timestamps.filter((timestamp) => now - timestamp < WINDOW_SIZE);
-  store[ip].lastCleanup = now;
-
-  if (store[ip].timestamps.length === 0) {
-    delete store[ip];
-  }
+function updateBucket(entry: RateLimitEntry, now: number): void {
+  const timePassed = now - entry.lastRequest;
+  const tokensToAdd = (timePassed / WINDOW_SIZE) * MAX_REQUESTS;
+  entry.bucket = Math.min(MAX_REQUESTS, entry.bucket + tokensToAdd);
+  entry.lastRequest = now;
 }
 
 export default async function handler(req: Request, ctx: FreshContext) {
-  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const ip = req.headers.get("x-forwarded-for") || ctx.remoteAddr.hostname || "unknown";
   const now = Date.now();
 
-  if (!store[ip]) {
-    store[ip] = { timestamps: [], lastCleanup: now };
+  let entry = store.get(ip);
+  if (!entry) {
+    entry = { bucket: MAX_REQUESTS, lastRequest: now, violations: 0, blockedUntil: 0 };
+    store.set(ip, entry);
   }
 
-  // Perform cleanup if it's been more than WINDOW_SIZE since last cleanup
-  if (now - store[ip].lastCleanup >= WINDOW_SIZE) {
-    cleanupStoreEntry(ip, now);
+  updateBucket(entry, now);
+
+  if (now < entry.blockedUntil) {
+    return new Response(
+      JSON.stringify({ error: "IP blocked due to repeated rate limit violations." }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
   }
 
-  // Ensure the entry exists after cleanup
-  if (!store[ip]) {
-    store[ip] = { timestamps: [], lastCleanup: now };
-  }
+  if (entry.bucket < 1) {
+    entry.violations++;
+    if (entry.violations >= BLOCK_THRESHOLD) {
+      entry.blockedUntil = now + MAX_BLOCKED_TIME;
+      return new Response(
+        JSON.stringify({ error: "IP blocked due to repeated rate limit violations." }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-  const remaining = MAX_REQUESTS - store[ip].timestamps.length;
-  const isRateLimited = remaining <= 0;
-
-  if (isRateLimited) {
     return new Response(
       JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
       {
@@ -57,18 +61,18 @@ export default async function handler(req: Request, ctx: FreshContext) {
           "X-RateLimit-Reset": (now + WINDOW_SIZE).toString(),
           "Retry-After": "60",
         },
-      },
+      }
     );
   }
 
-  store[ip].timestamps.push(now);
+  entry.bucket -= 1;
+  entry.violations = Math.max(0, entry.violations - 1); // Decrease violations count for good behavior
 
   const resp = await ctx.next();
   const headers = resp.headers;
 
-  // Add rate limit info to all responses
   headers.set("X-RateLimit-Limit", MAX_REQUESTS.toString());
-  headers.set("X-RateLimit-Remaining", remaining.toString());
+  headers.set("X-RateLimit-Remaining", Math.floor(entry.bucket).toString());
   headers.set("X-RateLimit-Reset", (now + WINDOW_SIZE).toString());
 
   return resp;
