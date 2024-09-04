@@ -9,7 +9,7 @@ import { getRandomPersonalities, Personality } from "lib/debate/personalities.ts
 import { clamp, sanitizeInput } from "lib/utils.ts";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { AgentDetails } from "routes/api/debate.tsx";
-import { DEFAULT_VOICE } from "routes/api/voicesynth.tsx";
+import { DEFAULT_VOICE, type VoiceType } from "routes/api/voicesynth.tsx";
 
 export function useDebateState() {
   const [position, setPosition] = useState("");
@@ -23,7 +23,7 @@ export function useDebateState() {
   const [isDebating, setIsDebating] = useState(false);
   const [isDebateFinished, setIsDebateFinished] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [enableModerator, setEnableModerator] = useState(true);
+  const [moderatorVoice, setModeratorVoice] = useState<VoiceType | "none">("nova");
   const [userUUID, setUserUUID] = useState<string>("");
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export function useDebateState() {
       numAgents,
       numDebateRounds,
       uuid: userUUID,
-      enableModerator,
+      moderatorVoice,
     });
 
     if (!valid) {
@@ -102,7 +102,7 @@ export function useDebateState() {
           numAgents,
           numDebateRounds,
           agentDetails,
-          enableModerator,
+          moderatorVoice,
           uuid: userUUID,
         }),
         signal: abortControllerRef.current.signal,
@@ -119,7 +119,7 @@ export function useDebateState() {
 
       const decoder = new TextDecoder();
       let buffer = "";
-      let currentMessage: { role: string; content: string } | null = null;
+      const currentMessage: { role: string; content: string } | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -189,7 +189,7 @@ export function useDebateState() {
       setIsDebating(false);
       abortControllerRef.current = null;
     }
-  }, [position, numAgents, numDebateRounds, agentDetails, enableModerator, userUUID]);
+  }, [position, numAgents, numDebateRounds, agentDetails, moderatorVoice, userUUID]);
 
   const cancelDebate = useCallback(() => {
     if (abortControllerRef.current) {
@@ -231,8 +231,8 @@ export function useDebateState() {
     handleSubmit,
     cancelDebate,
     updateAgentDetails,
-    enableModerator,
-    setEnableModerator,
+    moderatorVoice,
+    setModeratorVoice,
     userUUID,
   };
 }

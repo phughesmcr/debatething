@@ -2,6 +2,7 @@ import { Handlers } from "$fresh/server.ts";
 import { conductDebateStream } from "lib/debate/debate.ts";
 import { validateDebateInput } from "lib/debate/inputValidation.ts";
 import { compressJson, kv } from "lib/kv.ts";
+import type { VoiceType } from "routes/api/voicesynth.tsx";
 
 export interface AgentDetails {
   name: string;
@@ -18,7 +19,7 @@ export interface DebateRequest {
   agentDetails: AgentDetails[];
   uuid: string;
   numDebateRounds: number;
-  enableModerator: boolean;
+  moderatorVoice: VoiceType | "none";
 }
 
 export type DebateResponse = ReadableStream | { errors: string[] };
@@ -43,7 +44,7 @@ export const handler: Handlers = {
         numAgents: input.numAgents,
         agentDetails: input.agentDetails,
         numDebateRounds: input.numDebateRounds,
-        enableModerator: input.enableModerator,
+        moderatorVoice: input.moderatorVoice,
         timestamp,
       });
       await kv.set(["debates", input.uuid, timestamp], compressJson(data));

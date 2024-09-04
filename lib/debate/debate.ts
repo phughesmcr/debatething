@@ -14,16 +14,15 @@ export function conductDebateStream(request: DebateRequest) {
     agentDetails,
     uuid,
     numDebateRounds,
-    enableModerator,
+    moderatorVoice,
   } = request;
-
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const moderator = new Moderator(controller);
+        const moderator = moderatorVoice !== "none" ? new Moderator(controller, moderatorVoice) : null;
         const systemMessage = createSystemMessage(
           position,
           context,
@@ -34,23 +33,16 @@ export function conductDebateStream(request: DebateRequest) {
           content: systemMessage,
         }];
 
-        if (enableModerator) {
-          // Moderator introduces the debate
-          moderator.welcome(position);
-          // Moderator introduces each agent
-          for (const agent of agentDetails) {
-            moderator.introduceAgent(agent.name, agent.personality, agent.stance);
-          }
-          // Opening statements
-          moderator.announceOpeningStatements();
+        moderator?.welcome(position);
+        for (const agent of agentDetails) {
+          moderator?.introduceAgent(agent.name, agent.personality, agent.stance);
         }
+        moderator?.announceOpeningStatements();
 
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
 
-          if (enableModerator) {
-            moderator.requestOpeningStatement(currentAgent.name);
-          }
+          moderator?.requestOpeningStatement(currentAgent.name);
 
           // deno-fmt-ignore
           const userPrompt = `You are ${currentAgent.name}. Your stance on the position is "${currentAgent.stance}". Provide your opening statement on the topic. Remember to stay in character as described in your personality and maintain your assigned stance.`;
@@ -68,22 +60,16 @@ export function conductDebateStream(request: DebateRequest) {
 
           debateHistory.push({ role: "assistant", content: fullContent });
 
-          if (enableModerator) {
-            moderator.thankAgent(currentAgent.name);
-          }
+          moderator?.thankAgent(currentAgent.name);
         }
 
         // Debate rounds
         for (let round = 0; round < numDebateRounds; round++) {
-          if (enableModerator) {
-            moderator.announceDebateRound(round + 1);
-          }
+          moderator?.announceDebateRound(round + 1);
 
           for (let agentNum = 0; agentNum < numAgents; agentNum++) {
             const currentAgent = agentDetails[agentNum];
-            if (enableModerator) {
-              moderator.requestResponse(currentAgent.name);
-            }
+            moderator?.requestResponse(currentAgent.name);
 
             // deno-fmt-ignore
             const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Respond to the previous arguments, addressing points made by other participants. Remember to stay in character, maintain your perspective, and argue from your assigned stance.`;
@@ -101,22 +87,16 @@ export function conductDebateStream(request: DebateRequest) {
 
             debateHistory.push({ role: "assistant", content: fullContent });
 
-            if (enableModerator) {
-              moderator.thankAgent(currentAgent.name);
-            }
+            moderator?.thankAgent(currentAgent.name);
           }
         }
 
         // Concluding statements
-        if (enableModerator) {
-          moderator.announceConcludingStatements();
-        }
+        moderator?.announceConcludingStatements();
 
         for (let agentNum = 0; agentNum < numAgents; agentNum++) {
           const currentAgent = agentDetails[agentNum];
-          if (enableModerator) {
-            moderator.requestConcludingStatement(currentAgent.name);
-          }
+          moderator?.requestConcludingStatement(currentAgent.name);
 
           // deno-fmt-ignore
           const userPrompt = `You are ${currentAgent.name}. Your stance is ${currentAgent.stance} the position. Taking into account the whole debate, provide your concluding statement on the topic, summarizing your main points and final position. Remember to stay in character as described in your personality and maintain your assigned stance.`;
@@ -134,14 +114,10 @@ export function conductDebateStream(request: DebateRequest) {
 
           debateHistory.push({ role: "assistant", content: fullContent });
 
-          if (enableModerator) {
-            moderator.thankAgent(currentAgent.name);
-          }
+          moderator?.thankAgent(currentAgent.name);
 
           // Moderator closes the debate
-          if (enableModerator) {
-            moderator.closeDebate();
-          }
+          moderator?.closeDebate();
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));

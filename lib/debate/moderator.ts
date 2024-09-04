@@ -1,3 +1,4 @@
+import { type VoiceType } from "routes/api/voicesynth.tsx";
 import moderatorResponses from "./moderatorResponses.json" with { type: "json" };
 
 export const MODERATOR_NAME = "Moderator";
@@ -6,10 +7,12 @@ export class Moderator {
   private usedResponses: Set<string> = new Set();
   private encoder: TextEncoder;
   private controller: ReadableStreamDefaultController<Uint8Array>;
+  readonly voice: VoiceType | "none";
 
-  constructor(controller: ReadableStreamDefaultController<Uint8Array>) {
+  constructor(controller: ReadableStreamDefaultController<Uint8Array>, voice: VoiceType | "none") {
     this.encoder = new TextEncoder();
     this.controller = controller;
+    this.voice = voice;
   }
 
   private getRandomResponse(
