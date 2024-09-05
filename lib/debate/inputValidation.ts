@@ -92,7 +92,10 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
       }
 
       // validate stance
-      if (typeof agent.stance !== "string" || agent.stance.trim().length === 0 || !["for", "against", "undecided", "moderator"].includes(agent.stance)) {
+      if (
+        typeof agent.stance !== "string" || agent.stance.trim().length === 0 ||
+        !["for", "against", "undecided", "moderator"].includes(agent.stance)
+      ) {
         errors.push(`Participant ${index + 1} stance is invalid`);
       }
     });

@@ -216,4 +216,4 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
       </div>
     </form>
   );
-};
+}

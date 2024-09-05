@@ -53,4 +53,4 @@ export default function DebateDisplay(props: DebateDisplayProps) {
       {isDebateFinished && <p class="mt-6 text-green-600 dark:text-green-400 font-semibold">Debate has concluded.</p>}
     </div>
   );
-};
+}
