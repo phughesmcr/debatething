@@ -9,7 +9,6 @@ export interface AgentDetails {
   personality: string;
   stance: "for" | "against" | "undecided" | "moderator";
   voice: string;
-  uuid: string;
 }
 
 export interface DebateRequest {
