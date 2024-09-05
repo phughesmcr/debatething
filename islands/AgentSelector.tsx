@@ -31,16 +31,16 @@ export default function AgentSelector(
   };
 
   return (
-    <div class="space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {agentDetails.length > 0
           ? (
             agentDetails.map((agent, index) => (
               <div
                 key={index}
-                class="bg-white dark:bg-gray-800 dark:border-gray-500 dark:border-[1px] shadow-md rounded-lg p-6"
+                class="bg-white dark:bg-gray-800 dark:border-gray-500 dark:border-[1px] shadow-md rounded-lg px-6 py-2"
               >
-                <h4 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Participant {index + 1}</h4>
+                <h4 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Participant {index + 1}</h4>
                 <div class="mb-3">
                   <label
                     htmlFor={`agent-name-${index}`}

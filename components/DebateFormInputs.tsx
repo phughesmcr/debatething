@@ -72,7 +72,7 @@ const DebateFormInputs = ({
     >
       <div>
         <label htmlFor="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Debate Position
+          Debate Topic
         </label>
         <input
           type="text"
@@ -138,7 +138,7 @@ const DebateFormInputs = ({
         <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
           Customization & Participant Settings
         </summary>
-        <div class="mt-4 space-y-6">
+        <div class="mt-4 space-y-4">
           <div>
             <label htmlFor="context" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Additional Context (optional)
@@ -149,6 +149,7 @@ const DebateFormInputs = ({
               onInput={(e) => setContext((e.target as HTMLTextAreaElement).value)}
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               rows={3}
+              placeholder="Provide any additional context for the debate. This will help the participants understand the topic better. For example, where is the debate taking place?"
               maxLength={MAX_DEBATE_CONTEXT_LENGTH}
             />
           </div>
