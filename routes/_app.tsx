@@ -65,7 +65,7 @@ export default function App({ Component }: PageProps) {
         <link
           rel="manifest"
           href={asset("/site.webmanifest")}
-          crossorigin="use-credentials"
+          crossorigin="anonymous"
         />
 
         <link rel="stylesheet" href={asset("/styles.css")} />
