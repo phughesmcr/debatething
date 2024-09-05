@@ -189,5 +189,5 @@ export const playFullDebate = (
   setIsLoading(false);
   setIsSynthesizingAudio(false);
 
-  return Promise.resolve();
+  return Promise.resolve(newAudioQueue);
 };

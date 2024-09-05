@@ -58,7 +58,7 @@ export function useDebateState() {
   }, [updateAgentDetails]);
 
   useEffect(() => {
-    if (agentDetails.length === 0) {
+    if (agentDetails.length !== numAgents) {
       updateAgentDetails(numAgents);
     }
   }, [numAgents, agentDetails.length, updateAgentDetails]);
@@ -209,7 +209,7 @@ export function useDebateState() {
       setIsDebating(false);
       abortControllerRef.current = null;
     }
-  }, [position, numAgents, numDebateRounds, agentDetails, moderatorVoice, userUUID]);
+  }, [position, numAgents, numDebateRounds, agentDetails, moderatorVoice, userUUID, context]);
 
   const cancelDebate = useCallback(() => {
     if (abortControllerRef.current) {
