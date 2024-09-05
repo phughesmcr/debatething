@@ -7,8 +7,8 @@ import {
   MIN_AGENTS,
   MIN_DEBATE_ROUNDS,
 } from "lib/debate/inputValidation.ts";
-import { Personality } from "lib/debate/personalities.ts";
-import { VoiceType } from "routes/api/voicesynth.tsx";
+import type { Personality } from "lib/debate/personalities.ts";
+import type { VoiceType } from "routes/api/voicesynth.tsx";
 
 interface DebateFormInputsProps {
   position: string;
@@ -43,31 +43,35 @@ const EXAMPLE_POSITIONS = [
   "Coffee is better than sleep",
 ];
 
-const DebateFormInputs = ({
-  position,
-  setPosition,
-  numAgents,
-  setNumAgents,
-  numDebateRounds,
-  setNumDebateRounds,
-  context,
-  setContext,
-  agentDetails,
-  setAgentDetails,
-  errors,
-  loading,
-  isDebating,
-  handleSubmit,
-  cancelDebate,
-  moderatorVoice,
-  setModeratorVoice,
-}: DebateFormInputsProps) => {
+export default function DebateFormInputs(props: DebateFormInputsProps) {
+  const {
+    position,
+    setPosition,
+    numAgents,
+    setNumAgents,
+    numDebateRounds,
+    setNumDebateRounds,
+    context,
+    setContext,
+    agentDetails,
+    setAgentDetails,
+    errors,
+    loading,
+    isDebating,
+    handleSubmit,
+    cancelDebate,
+    moderatorVoice,
+    setModeratorVoice,
+  } = props;
+
+  const onSubmitHandler = (e: Event) => {
+    e.preventDefault();
+    handleSubmit(e);
+  };
+
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit(e);
-      }}
+      onSubmit={onSubmitHandler}
       class="space-y-6"
     >
       {!isDebating && (
@@ -212,5 +216,3 @@ const DebateFormInputs = ({
     </form>
   );
 };
-
-export default DebateFormInputs;

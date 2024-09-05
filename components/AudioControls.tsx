@@ -7,9 +7,8 @@ interface AudioControlsProps {
   handlePlayPause: () => void;
 }
 
-export default function AudioControls(
-  { isPlaying, isLoading, isSynthesizingAudio, handlePlayPause }: AudioControlsProps,
-) {
+export default function AudioControls(props: AudioControlsProps) {
+  const { isPlaying, isLoading, isSynthesizingAudio, handlePlayPause } = props;
   const [buttonState, setButtonState] = useState<"play" | "pause" | "resume" | "loading">("play");
 
   useEffect(() => {
@@ -17,8 +16,10 @@ export default function AudioControls(
       setButtonState("loading");
     } else if (isPlaying) {
       setButtonState("pause");
+    } else if (buttonState === "pause") {
+      setButtonState("resume");
     } else {
-      setButtonState(buttonState === "pause" ? "resume" : "play");
+      setButtonState("play");
     }
   }, [isPlaying, isLoading, isSynthesizingAudio]);
 
@@ -35,17 +36,13 @@ export default function AudioControls(
     }
   };
 
-  const handleClick = () => {
-    handlePlayPause();
-  };
-
   return (
     <button
-      onClick={handleClick}
+      onClick={handlePlayPause}
       disabled={buttonState === "loading"}
       className={`w-full mt-2 px-4 py-2 rounded text-white font-bold ${
         buttonState === "pause"
-          ? "bg-yellow-400"
+          ? "bg-orange-400"
           : buttonState === "loading"
           ? "bg-gray-500 cursor-not-allowed"
           : "bg-green-500"

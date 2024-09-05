@@ -1,4 +1,4 @@
-import { Personality } from "lib/debate/personalities.ts";
+import type { Personality } from "lib/debate/personalities.ts";
 
 interface DebateDisplayProps {
   debate: Array<{ role: string; content: string }>;
@@ -6,23 +6,19 @@ interface DebateDisplayProps {
   isDebateFinished: boolean;
 }
 
-const DebateDisplay = ({
-  debate,
-  agentDetails,
-  isDebateFinished,
-}: DebateDisplayProps) => {
-  const getAgentColor = (stance: string): string => {
-    switch (stance) {
-      case "for":
-        return "text-green-600 dark:text-green-400";
-      case "against":
-        return "text-red-600 dark:text-red-400";
-      case "undecided":
-        return "text-yellow-600 dark:text-yellow-400";
-      default:
-        return "text-blue-600 dark:text-blue-400";
-    }
-  };
+const STANCE_COLORS: Record<string, string> = {
+  for: "text-green-600 dark:text-green-400",
+  against: "text-red-600 dark:text-red-400",
+  undecided: "text-yellow-600 dark:text-yellow-400",
+  other: "text-blue-600 dark:text-blue-400",
+};
+
+const getAgentColor = (stance: string): string => {
+  return STANCE_COLORS[stance] || STANCE_COLORS.other;
+};
+
+export default function DebateDisplay(props: DebateDisplayProps) {
+  const { debate, agentDetails, isDebateFinished } = props;
 
   return (
     <div class="mt-8">
@@ -58,5 +54,3 @@ const DebateDisplay = ({
     </div>
   );
 };
-
-export default DebateDisplay;
