@@ -45,6 +45,15 @@ export default function Home() {
         >
           Deno Deploy
         </a>
+        . It is made available under the{" "}
+        <a
+          href="https://opensource.org/license/mit"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-blue-500 hover:underline cursor-pointer"
+        >
+          MIT License
+        </a>
         .{" "}
         <a
           href="http://phugh.es"
