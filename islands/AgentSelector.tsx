@@ -8,9 +8,9 @@ interface AgentSelectorProps {
   setAgentDetails: (agents: Required<Personality>[]) => void;
 }
 
-export default function AgentSelector(
-  { agentDetails, setAgentDetails }: AgentSelectorProps,
-) {
+export default function AgentSelector(props: AgentSelectorProps) {
+  const { agentDetails, setAgentDetails } = props;
+
   const handlePersonalityChange = (personality: string, index: number) => {
     const newAgents = [...agentDetails];
     newAgents[index] = {
