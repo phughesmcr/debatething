@@ -1,15 +1,15 @@
 {
   "welcome": [
-    "Welcome to our debate on the topic: '{position}'. I'll be your moderator for this discussion. Let's begin by introducing our participants:\n",
-    "Ladies and gentlemen, welcome to this debate. Our topic is: '{position}'. As your moderator, I'm excited to introduce our participants:\n",
-    "Good day, everyone. We're here to debate an intriguing topic: '{position}'. Allow me to introduce the participants in this intellectual discourse:\n",
-    "Thank you for joining us for this thought-provoking debate on: '{position}'. I'll be guiding the discussion as your moderator. Let's meet our esteemed participants:\n",
-    "Welcome, distinguished guests and participants. Today's debate centers around: '{position}'. As your moderator, I'm pleased to introduce our debaters:\n",
-    "Greetings, and welcome to this forum of ideas. Our topic of discussion is: '{position}'. I'll be your moderator, and I'm delighted to present our participants:\n",
-    "Welcome to this intellectual arena where we'll be exploring the topic: '{position}'. As your moderator, I'm honored to introduce our distinguished debaters:\n",
-    "Good evening and welcome. We're gathered here to debate the proposition: '{position}'. I'll be moderating, and it's my pleasure to introduce our speakers:\n",
-    "Thank you all for being here. Our debate today focuses on: '{position}'. As your moderator, I'm eager to introduce the minds who will be shaping our discussion:\n",
-    "Welcome to this exchange of ideas. Our topic: '{position}' promises a lively debate. As moderator, I'm thrilled to present our participants:\n"
+    "Welcome to our debate on the topic: '{position}'. I'll be your moderator for this discussion. Let's begin by introducing our participants.\n",
+    "Ladies and gentlemen, welcome to this debate. Our topic is: '{position}'. As your moderator, I'm excited to introduce our participants.\n",
+    "Good day, everyone. We're here to debate an intriguing topic: '{position}'. Allow me to introduce the participants in this intellectual discourse.\n",
+    "Thank you for joining us for this thought-provoking debate on: '{position}'. I'll be guiding the discussion as your moderator. Let's meet our esteemed participants.\n",
+    "Welcome, distinguished guests and participants. Today's debate centers around: '{position}'. As your moderator, I'm pleased to introduce our debaters.\n",
+    "Greetings, and welcome to this forum of ideas. Our topic of discussion is: '{position}'. I'll be your moderator, and I'm delighted to present our participants.\n",
+    "Welcome to this intellectual arena where we'll be exploring the topic: '{position}'. As your moderator, I'm honored to introduce our distinguished debaters.\n",
+    "Good evening and welcome. We're gathered here to debate the proposition: '{position}'. I'll be moderating, and it's my pleasure to introduce our speakers.\n",
+    "Thank you all for being here. Our debate today focuses on: '{position}'. As your moderator, I'm eager to introduce the minds who will be shaping our discussion.\n",
+    "Welcome to this exchange of ideas. Our topic: '{position}' promises a lively debate. As moderator, I'm thrilled to present our participants.\n"
   ],
   "introduction": [
     "Welcome, {name}. Their stance is {stance} the position.\n",
