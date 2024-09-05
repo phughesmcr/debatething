@@ -35,7 +35,9 @@ const DebateDisplay = ({
           return (
             <div
               key={index}
-              class={`bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-3 ${isModerator ? "border-l-4 border-blue-500" : ""}`}
+              class={`bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-3 ${
+                isModerator ? "border-l-4 border-blue-500" : ""
+              }`}
             >
               <div class="flex items-center justify-between mb-2">
                 <h3

@@ -70,7 +70,7 @@ const DebateFormInputs = ({
       }}
       class="space-y-6"
     >
-      {!isDebating ? (
+      {!isDebating && (
         <>
           <div>
             <label htmlFor="position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -173,7 +173,7 @@ const DebateFormInputs = ({
             </div>
           </details>
         </>
-      ) : <></>}
+      )}
 
       {errors.length > 0 && (
         <div

@@ -32,7 +32,7 @@ export const handleAudioSynthesis = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
+        "X-CSRF-Token": csrfToken,
       },
       body: JSON.stringify({ message: content, voice }),
     });

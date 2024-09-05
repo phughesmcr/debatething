@@ -36,7 +36,7 @@ export default async function handler(req: Request, ctx: FreshContext) {
   if (now < entry.blockedUntil) {
     return new Response(
       JSON.stringify({ error: "IP blocked due to repeated rate limit violations." }),
-      { status: 403, headers: { "Content-Type": "application/json" } }
+      { status: 403, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -46,7 +46,7 @@ export default async function handler(req: Request, ctx: FreshContext) {
       entry.blockedUntil = now + MAX_BLOCKED_TIME;
       return new Response(
         JSON.stringify({ error: "IP blocked due to repeated rate limit violations." }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
+        { status: 403, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -61,7 +61,7 @@ export default async function handler(req: Request, ctx: FreshContext) {
           "X-RateLimit-Reset": (now + WINDOW_SIZE).toString(),
           "Retry-After": "60",
         },
-      }
+      },
     );
   }
 
