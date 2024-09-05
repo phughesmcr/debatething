@@ -8,7 +8,7 @@ const JSONLD = {
   "url": "https://www.debatething.com",
   "image": {
     "@type": "ImageObject",
-    "url": "https://www.debatething.com/img/512.png",
+    "url": "https://www.debatething.com/android-chrome-512x512.png",
     "width": 512,
     "height": 512,
   },
@@ -37,22 +37,13 @@ export default function App({ Component }: PageProps) {
           href={asset("/favicon-16x16.png")}
         />
         <link
-          rel="mask-icon"
-          href={asset("/safari-pinned-tab.svg")}
-          color="#189cd9"
-        />
-        <link
           rel="apple-touch-icon"
           sizes="180x180"
           href={asset("/apple-touch-icon.png")}
         />
 
         <meta name="theme-color" content="#1881F2" key="head-theme-color" />
-        <meta
-          name="application-name"
-          content="DebateThing.com"
-          key="head-application-name"
-        />
+        <meta name="application-name" content="DebateThing.com" />
         <meta name="HandheldFriendly" content="True" />
         <meta name="MobileOptimized" content="320" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -85,7 +76,7 @@ export default function App({ Component }: PageProps) {
         >
         </script>
         {
-          /* <script dangerouslySetInnerHTML={{__html: `
+        <script dangerouslySetInnerHTML={{__html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
               navigator.serviceWorker.register('/sw.js').then(function(registration) {
@@ -95,7 +86,7 @@ export default function App({ Component }: PageProps) {
               });
             });
           }
-        `}}></script> */
+        `}}></script>
         }
       </head>
       <body>
