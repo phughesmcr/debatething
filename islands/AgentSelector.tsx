@@ -1,7 +1,7 @@
 import CustomPersonalityInput from "components/CustomPersonalityInput.tsx";
 import { MAX_NAME_LENGTH } from "lib/debate/inputValidation.ts";
 import type { Personality } from "lib/debate/personalities.ts";
-import { sanitizeInput } from "lib/utils.ts";
+import { cleanContent, sanitizeInput } from "lib/utils.ts";
 
 interface AgentSelectorProps {
   agentDetails: Required<Personality>[];
@@ -15,7 +15,7 @@ export default function AgentSelector(props: AgentSelectorProps) {
     const newAgents = [...agentDetails];
     newAgents[index] = {
       ...newAgents[index],
-      personality,
+      personality: cleanContent(sanitizeInput(personality)),
     };
     setAgentDetails(newAgents);
   };
@@ -25,8 +25,9 @@ export default function AgentSelector(props: AgentSelectorProps) {
     field: keyof Personality,
     value: string,
   ) => {
+    const sanitizedValue = sanitizeInput(value);
     const newAgents = [...agentDetails];
-    newAgents[index] = { ...newAgents[index], [field]: value };
+    newAgents[index] = { ...newAgents[index], [field]: sanitizedValue };
     setAgentDetails(newAgents);
   };
 
@@ -51,8 +52,8 @@ export default function AgentSelector(props: AgentSelectorProps) {
                   <input
                     id={`agent-name-${index}`}
                     type="text"
-                    value={agent.name.split(" ")[1]}
-                    onInput={(e) =>
+                    value={agent.name}
+                    onChange={(e) =>
                       handleAgentDetailChange(
                         index,
                         "name",

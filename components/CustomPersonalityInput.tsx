@@ -1,5 +1,6 @@
 import { MAX_PERSONALITY_LENGTH } from "lib/debate/inputValidation.ts";
 import { personalities } from "lib/debate/personalities.ts";
+import { cleanContent, sanitizeInput } from "lib/utils.ts";
 import { useEffect, useState } from "preact/hooks";
 
 interface CustomPersonalityInputProps {
@@ -14,12 +15,13 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
 
   // Personality dropdown handler
   useEffect(() => {
-    const matchingPersonality = personalities.find((p) => p.personality === value);
+    const sanitizedValue = cleanContent(sanitizeInput(value));
+    const matchingPersonality = personalities.find((p) => p.personality === sanitizedValue);
     if (matchingPersonality) {
       setSelectedOption(matchingPersonality.name);
     } else {
       setSelectedOption("custom");
-      setCustomInput(value);
+      setCustomInput(sanitizedValue);
     }
   }, [value]);
 
@@ -40,7 +42,7 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
   };
 
   const handleCustomInputChange = (e: Event) => {
-    const newValue = (e.target as HTMLTextAreaElement).value;
+    const newValue = cleanContent(sanitizeInput((e.target as HTMLTextAreaElement).value));
     setCustomInput(newValue);
     onChange(newValue);
   };

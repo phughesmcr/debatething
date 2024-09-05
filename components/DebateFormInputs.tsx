@@ -8,6 +8,7 @@ import {
   MIN_DEBATE_ROUNDS,
 } from "lib/debate/inputValidation.ts";
 import type { Personality } from "lib/debate/personalities.ts";
+import { cleanContent, sanitizeInput } from "lib/utils.ts";
 import type { VoiceType } from "routes/api/voicesynth.tsx";
 
 interface DebateFormInputsProps {
@@ -87,7 +88,7 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
               placeholder={EXAMPLE_POSITIONS[Math.floor(Math.random() * EXAMPLE_POSITIONS.length)]}
               minLength={4}
               maxLength={MAX_POSITION_LENGTH}
-              onInput={(e) => setPosition((e.target as HTMLInputElement).value)}
+              onChange={(e) => setPosition(cleanContent(sanitizeInput((e.target as HTMLInputElement).value)))}
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               required
             />
@@ -102,7 +103,7 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
                 type="number"
                 id="numAgents"
                 value={numAgents}
-                onInput={(e) => setNumAgents(parseInt((e.target as HTMLInputElement).value, 10))}
+                onChange={(e) => setNumAgents(parseInt((e.target as HTMLInputElement).value, 10))}
                 min={MIN_AGENTS}
                 max={MAX_AGENTS}
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -117,7 +118,7 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
                 type="number"
                 id="numDebateRounds"
                 value={numDebateRounds}
-                onInput={(e) => setNumDebateRounds(parseInt((e.target as HTMLInputElement).value, 10))}
+                onChange={(e) => setNumDebateRounds(parseInt((e.target as HTMLInputElement).value, 10))}
                 min={MIN_DEBATE_ROUNDS}
                 max={MAX_DEBATE_ROUNDS}
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -157,7 +158,7 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
                 <textarea
                   id="context"
                   value={context}
-                  onInput={(e) => setContext((e.target as HTMLTextAreaElement).value)}
+                  onChange={(e) => setContext(cleanContent(sanitizeInput((e.target as HTMLTextAreaElement).value)))}
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   rows={3}
                   placeholder="Provide any additional context for the debate. This will help the participants understand the topic better. For example, where is the debate taking place?"
