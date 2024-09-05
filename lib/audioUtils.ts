@@ -11,9 +11,29 @@ export const handleAudioSynthesis = async (
   setIsLoading(true);
   setIsSynthesizingAudio(true);
   try {
+    // Fetch CSRF token
+    const tokenResponse = await fetch("/api/csrf-token", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error(`Failed to obtain CSRF token: ${tokenResponse.status}`);
+    }
+
+    const csrfToken = tokenResponse.headers.get("X-CSRF-Token");
+
+    if (!csrfToken) {
+      throw new Error("CSRF token not found in response");
+    }
+
+    // Make the voice synthesis request with the CSRF token
     const response = await fetch("/api/voicesynth", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
       body: JSON.stringify({ message: content, voice }),
     });
 
@@ -168,4 +188,6 @@ export const playFullDebate = (
   setAudioQueue(newAudioQueue);
   setIsLoading(false);
   setIsSynthesizingAudio(false);
+
+  return Promise.resolve();
 };
