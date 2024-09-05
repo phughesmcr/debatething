@@ -26,6 +26,13 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
     errors.push(`Position must be ${MAX_POSITION_LENGTH} characters or less`);
   }
 
+  // Validate context
+  if (typeof input.context !== "string" || input.context.trim().length === 0) {
+    input.context = "";
+  } else if (input.context.length > MAX_DEBATE_CONTEXT_LENGTH) {
+    errors.push(`Context must be ${MAX_DEBATE_CONTEXT_LENGTH} characters or less`);
+  }
+
   // Validate numAgents
   if (
     !Number.isInteger(input.numAgents) || input.numAgents < MIN_AGENTS ||
@@ -56,6 +63,7 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
     );
   } else {
     input.agentDetails.forEach((agent, index) => {
+      // validate name
       if (typeof agent.name !== "string" || agent.name.trim().length === 0) {
         errors.push(`Participant ${index + 1} name must be a non-empty string`);
       } else if (agent.name.length > MAX_NAME_LENGTH) {
@@ -64,6 +72,7 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
         );
       }
 
+      // validate personality
       if (
         typeof agent.personality !== "string" ||
         agent.personality.trim().length === 0
@@ -76,7 +85,27 @@ export function validateDebateInput(input: DebateRequest): InputValidationRespon
           `Participant ${index + 1} personality must be ${MAX_PERSONALITY_LENGTH} characters or less`,
         );
       }
+
+      // validate voice
+      if (typeof agent.voice !== "string" || agent.voice.trim().length === 0) {
+        errors.push(`Participant ${index + 1} voice must be a non-empty string`);
+      }
+
+      // validate stance
+      if (typeof agent.stance !== "string" || agent.stance.trim().length === 0 || !["for", "against", "undecided", "moderator"].includes(agent.stance)) {
+        errors.push(`Participant ${index + 1} stance is invalid`);
+      }
     });
+  }
+
+  // Validate UUID
+  if (typeof input.uuid !== "string" || input.uuid.trim().length === 0) {
+    errors.push("There was an internal error. Refresh the page and try again");
+  }
+
+  // Validate moderatorVoice
+  if (typeof input.moderatorVoice !== "string" || input.moderatorVoice.trim().length === 0) {
+    errors.push("There was an internal error. Refresh the page and try again.");
   }
 
   return { valid: errors.length === 0, errors };
