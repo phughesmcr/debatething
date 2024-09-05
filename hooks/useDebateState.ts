@@ -11,6 +11,8 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { AgentDetails } from "routes/api/debate.tsx";
 import { DEFAULT_VOICE, type VoiceType } from "routes/api/voicesynth.tsx";
 
+type DebateMessage = { role: string; content: string };
+
 export function useDebateState() {
   const [position, setPosition] = useState("");
   const [numAgents, setNumAgentsState] = useState(2);
@@ -139,7 +141,7 @@ export function useDebateState() {
 
       const decoder = new TextDecoder();
       let buffer = "";
-      const currentMessage: { role: string; content: string } | null = null;
+      let currentMessage: DebateMessage | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -156,7 +158,7 @@ export function useDebateState() {
               setIsDebateFinished(true);
             } else {
               try {
-                const message = JSON.parse(jsonData);
+                const message = JSON.parse(jsonData) as DebateMessage;
                 setDebate((prevDebate) => {
                   const lastMessage = prevDebate[prevDebate.length - 1];
                   if (lastMessage && lastMessage.role === message.role) {
@@ -170,6 +172,7 @@ export function useDebateState() {
                     return [...prevDebate, message];
                   }
                 });
+                currentMessage = message;
               } catch (error) {
                 console.error("Error parsing JSON:", error);
               }
@@ -184,10 +187,10 @@ export function useDebateState() {
           const jsonData = buffer.slice(6);
           if (jsonData.trim() !== "[DONE]") {
             try {
-              const message = JSON.parse(jsonData);
+              const message = JSON.parse(jsonData) as DebateMessage;
               if (currentMessage) {
                 currentMessage.content += message.content;
-                setDebate((prevDebate) => [...prevDebate, currentMessage]);
+                setDebate((prevDebate) => [...prevDebate, currentMessage!]);
               }
             } catch (error) {
               console.error("Error parsing JSON:", error);

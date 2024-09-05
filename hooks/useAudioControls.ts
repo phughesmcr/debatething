@@ -1,6 +1,6 @@
 import { pauseResumeAudio, playFullDebate, processQueue } from "lib/audioUtils.ts";
-import { Personality } from "lib/debate/personalities.ts";
-import { useCallback, useEffect } from "preact/hooks";
+import type { Personality } from "lib/debate/personalities.ts";
+import { useCallback, useEffect, useMemo } from "preact/hooks";
 import { useAudioState } from "./useAudioState.ts";
 
 export const useAudioControls = (
@@ -8,6 +8,7 @@ export const useAudioControls = (
   agentDetails: Required<Personality>[],
 ) => {
   const audioState = useAudioState();
+
   const {
     isProcessingQueue,
     isPaused,
@@ -19,7 +20,7 @@ export const useAudioControls = (
     setIsProcessingQueue,
   } = audioState;
 
-  const isPlaying = isProcessingQueue && !isPaused;
+  const isPlaying = useMemo(() => isProcessingQueue && !isPaused, [isProcessingQueue, isPaused]);
 
   useEffect(() => {
     return () => {
