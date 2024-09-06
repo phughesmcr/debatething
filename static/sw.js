@@ -1,4 +1,4 @@
-const CACHE_NAME = "debatething-cache-v5";
+const CACHE_NAME = "debatething-cache-v6";
 const urlsToCache = [
   "/",
   "/styles.css",
