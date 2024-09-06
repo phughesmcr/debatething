@@ -92,7 +92,7 @@ export default function App({ Component }: PageProps) {
           dangerouslySetInnerHTML={{ __html: `${JSON.stringify(JSONLD)}` }}
         >
         </script>
-        {
+        {/* {
         <script dangerouslySetInnerHTML={{__html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
@@ -104,7 +104,7 @@ export default function App({ Component }: PageProps) {
             });
           }
         `}}></script>
-        }
+        } */}
       </head>
       <body>
         <Component />
