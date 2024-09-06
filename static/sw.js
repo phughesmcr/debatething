@@ -44,27 +44,39 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For non-POST requests, use the cache-first strategy
+  // For non-POST requests, use a cache-first strategy with network fallback
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-        return fetch(event.request).then(
-          (response) => {
-            if (!response || response.status !== 200 || response.type !== "basic") {
-              return response;
+
+        return fetch(event.request)
+          .then((networkResponse) => {
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
+              console.error(`Failed to fetch: ${event.request.url}`, networkResponse);
+              return networkResponse;
             }
-            const responseToCache = response.clone();
+
+            const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
-            return response;
-          },
-        );
-      }),
+
+            return networkResponse;
+          })
+          .catch((error) => {
+            console.error(`Network error for: ${event.request.url}`, error);
+            // Optionally, you can return a custom offline page or a fallback response here
+            return new Response("Network error occurred. Please try again later.", {
+              status: 503,
+              statusText: "Service Unavailable",
+              headers: new Headers({ "Content-Type": "text/plain" }),
+            });
+          });
+      })
   );
 });
 
