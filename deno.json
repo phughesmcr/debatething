@@ -25,8 +25,11 @@
     "$std/": "https://deno.land/std@0.216.0/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
-    "@std/encoding": "jsr:@std/encoding@^1.0.3",
+    "@std/encoding": "jsr:@std/encoding@^1.0.4",
+    "@takker/md5": "jsr:@takker/md5@^0.1.0",
+    "brotli": "https://deno.land/x/brotli@0.1.7/mod.ts",
     "components/": "./components/",
+    "hooks/": "./hooks/",
     "islands/": "./islands/",
     "lib/": "./lib/",
     "openai": "https://deno.land/x/openai@v4.57.0/mod.ts",
@@ -35,9 +38,7 @@
     "routes/": "./routes/",
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
-    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
-    "hooks/": "./hooks/",
-    "brotli": "https://deno.land/x/brotli/mod.ts"
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
