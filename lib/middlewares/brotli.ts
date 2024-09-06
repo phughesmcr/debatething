@@ -6,7 +6,7 @@ export default async function brotliMiddleware(req: Request, ctx: FreshContext) 
   const headers = resp.headers;
 
   // Skip compression for event streams
-  if (headers.get("Content-Type") === "text/event-stream") {
+  if (headers.get("Content-Type") === "text/event-stream" || headers.get("Content-Type")?.includes("javascript")) {
     return resp;
   }
 

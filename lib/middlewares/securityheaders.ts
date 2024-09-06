@@ -18,7 +18,7 @@ const SECURITY_HEADERS = {
   "Permissions-Policy":
     "accelerometer=(), camera=(), encrypted-media=(), gyroscope=(), interest-cohort=(), microphone=(), magnetometer=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), sync-xhr=(), usb=(), xr-spatial-tracking=(), geolocation=()",
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; connect-src 'self' https://api.openai.com; media-src 'self' data: blob:; manifest-src 'self';",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; connect-src 'self' https://api.openai.com; media-src 'self' data: blob:; manifest-src 'self';",
   "Expect-CT": "max-age=86400, enforce",
 };
 
@@ -72,6 +72,9 @@ export default async function handler(req: Request, ctx: FreshContext) {
   const resp = await ctx.next();
   const headers = resp.headers;
   const path = new URL(req.url).pathname;
+  if (path.startsWith("/_frsh/")) {
+    return resp;
+  }
   setSecurityHeaders(headers, path);
   return resp;
 }
