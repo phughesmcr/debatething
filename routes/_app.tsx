@@ -42,6 +42,23 @@ export default function App({ Component }: PageProps) {
           href={asset("/apple-touch-icon.png")}
         />
 
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en" />
+        <meta property="og:title" content="DebateThing.com" />
+        <meta property="og:description" content="Generate interesting debates on any topic using AI and listen to them for free!" />
+        <meta property="og:url" content="https://debatething.com" />
+        <meta property="og:image" content="https://debatething.com/img/social.png" />
+        <meta property="og:image:secure_url" content="https://debatething.com/img/social.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="627" />
+        <meta property="og:site_name" content="DebateThing.com" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="DebateThing.com" />
+        <meta name="twitter:description" content="Generate interesting debates on any topic using AI and listen to them for free!" />
+        <meta name="twitter:image:src" content="https://debatething.com/img/social.png" />
+
         <meta name="theme-color" content="#1881F2" key="head-theme-color" />
         <meta name="application-name" content="DebateThing.com" />
         <meta name="HandheldFriendly" content="True" />

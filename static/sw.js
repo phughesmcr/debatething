@@ -1,4 +1,4 @@
-const CACHE_NAME = "debatething-cache-v4";
+const CACHE_NAME = "debatething-cache-v5";
 const urlsToCache = [
   "/",
   "/styles.css",
@@ -10,6 +10,7 @@ const urlsToCache = [
   "/android-chrome-512x512.png",
   "/android-chrome-192x192.png",
   "/mstile-150x150.png",
+  "/img/social.png",
 ];
 
 self.addEventListener("install", (event) => {
