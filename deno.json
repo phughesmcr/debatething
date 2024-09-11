@@ -38,7 +38,8 @@
     "routes/": "./routes/",
     "tailwindcss": "npm:tailwindcss@3.4.10",
     "tailwindcss/": "npm:/tailwindcss@3.4.10/",
-    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js"
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

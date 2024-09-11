@@ -1,4 +1,5 @@
 import AgentSelector from "islands/AgentSelector.tsx";
+import type { Personality } from "lib/debate/personalities.ts";
 import {
   MAX_AGENTS,
   MAX_DEBATE_CONTEXT_LENGTH,
@@ -6,8 +7,7 @@ import {
   MAX_POSITION_LENGTH,
   MIN_AGENTS,
   MIN_DEBATE_ROUNDS,
-} from "lib/debate/inputValidation.ts";
-import type { Personality } from "lib/debate/personalities.ts";
+} from "lib/debate/schema.ts";
 import { cleanContent, sanitizeInput } from "lib/utils.ts";
 import type { VoiceType } from "routes/api/voicesynth.tsx";
 

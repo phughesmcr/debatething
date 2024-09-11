@@ -1,14 +1,13 @@
+import { validateDebateInput } from "lib/debate/inputValidation.ts";
+import { getRandomPersonalities, Personality } from "lib/debate/personalities.ts";
 import {
   MAX_AGENTS,
   MAX_DEBATE_ROUNDS,
   MIN_AGENTS,
   MIN_DEBATE_ROUNDS,
-  validateDebateInput,
-} from "lib/debate/inputValidation.ts";
-import { getRandomPersonalities, Personality } from "lib/debate/personalities.ts";
+} from "lib/debate/schema.ts";
 import { clamp, sanitizeInput } from "lib/utils.ts";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import type { AgentDetails } from "routes/api/debate.tsx";
 import { DEFAULT_VOICE, type VoiceType } from "routes/api/voicesynth.tsx";
 
 type DebateMessage = { role: string; content: string };
@@ -73,15 +72,19 @@ export function useDebateState() {
     const sanitizedPosition = sanitizeInput(position);
     const sanitizedContext = sanitizeInput(context);
 
-    const { errors, valid } = validateDebateInput({
-      agentDetails: agentDetails as AgentDetails[],
-      context: sanitizedContext,
+    const requestPayload = {
       position: sanitizedPosition,
+      context: sanitizedContext,
       numAgents,
       numDebateRounds,
-      uuid: userUUID,
+      agentDetails,
       moderatorVoice,
-    });
+      uuid: userUUID,
+    };
+
+    console.log("Request payload:", requestPayload);
+
+    const { errors, valid } = validateDebateInput(requestPayload);
 
     if (!valid) {
       setErrors(errors);

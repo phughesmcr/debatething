@@ -1,13 +1,5 @@
+import { MAX_AGENTS, MAX_DEBATE_CONTEXT_LENGTH, MAX_DEBATE_ROUNDS, MAX_NAME_LENGTH, MAX_PERSONALITY_LENGTH, MAX_POSITION_LENGTH, MIN_AGENTS, MIN_DEBATE_ROUNDS } from "lib/debate/schema.ts";
 import type { DebateRequest } from "routes/api/debate.tsx";
-
-export const MIN_AGENTS = 2;
-export const MAX_AGENTS = 4;
-export const MAX_DEBATE_CONTEXT_LENGTH = 1028;
-export const MIN_DEBATE_ROUNDS = 1;
-export const MAX_DEBATE_ROUNDS = 3;
-export const MAX_NAME_LENGTH = 32;
-export const MAX_POSITION_LENGTH = 256;
-export const MAX_PERSONALITY_LENGTH = 256;
 
 export interface InputValidationResponse {
   valid: boolean;

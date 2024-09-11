@@ -1,6 +1,6 @@
 import CustomPersonalityInput from "components/CustomPersonalityInput.tsx";
-import { MAX_NAME_LENGTH } from "lib/debate/inputValidation.ts";
 import type { Personality } from "lib/debate/personalities.ts";
+import { MAX_NAME_LENGTH } from "lib/debate/schema.ts";
 import { cleanContent, sanitizeInput } from "lib/utils.ts";
 
 interface AgentSelectorProps {

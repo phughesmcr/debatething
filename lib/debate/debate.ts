@@ -1,5 +1,5 @@
+import type { DebateRequest } from "lib/debate/schema.ts";
 import type { OpenAI } from "openai";
-import type { DebateRequest } from "routes/api/debate.tsx";
 import { Moderator } from "./moderator.ts";
 import { createSystemMessage, makeAPIRequest } from "./submit.ts";
 

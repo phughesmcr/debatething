@@ -1,5 +1,5 @@
-import { MAX_PERSONALITY_LENGTH } from "lib/debate/inputValidation.ts";
 import { personalities } from "lib/debate/personalities.ts";
+import { MAX_PERSONALITY_LENGTH } from "lib/debate/schema.ts";
 import { cleanContent, sanitizeInput } from "lib/utils.ts";
 import { useEffect, useState } from "preact/hooks";
 

@@ -1,26 +1,9 @@
 import { Handlers } from "$fresh/server.ts";
 import { conductDebateStream } from "lib/debate/debate.ts";
-import { validateDebateInput } from "lib/debate/inputValidation.ts";
+import { DebateRequestSchema } from "lib/debate/schema.ts";
 import { compressJson, kv } from "lib/kv.ts";
-import type { VoiceType } from "routes/api/voicesynth.tsx";
 
-export interface AgentDetails {
-  name: string;
-  personality: string;
-  stance: "for" | "against" | "undecided" | "moderator";
-  voice: string;
-}
-
-export interface DebateRequest {
-  position: string;
-  context: string;
-  numAgents: number;
-  agentDetails: AgentDetails[];
-  uuid: string;
-  numDebateRounds: number;
-  moderatorVoice: VoiceType | "none";
-}
-
+export type { AgentDetails, DebateRequest } from "lib/debate/schema.ts";
 export type DebateResponse = ReadableStream | { errors: string[] };
 
 export const handler: Handlers = {
@@ -34,34 +17,37 @@ export const handler: Handlers = {
       });
     }
 
-    const input = await req.json() as DebateRequest;
+    const input = await req.json();
 
-    const { errors, valid } = validateDebateInput(input);
-    if (!valid) {
-      return new Response(JSON.stringify({ errors }), {
+    const result = DebateRequestSchema.safeParse(input);
+    if (!result.success) {
+      console.error("Validation errors:", result.error.errors);
+      return new Response(JSON.stringify({ errors: result.error.errors.map(e => e.message) }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
+    const validatedInput = result.data;
+
     try {
       const timestamp = new Date().toISOString();
       const data = JSON.stringify({
-        position: input.position,
-        context: input.context,
-        numAgents: input.numAgents,
-        agentDetails: input.agentDetails,
-        numDebateRounds: input.numDebateRounds,
-        moderatorVoice: input.moderatorVoice,
+        position: validatedInput.position,
+        context: validatedInput.context,
+        numAgents: validatedInput.numAgents,
+        agentDetails: validatedInput.agentDetails,
+        numDebateRounds: validatedInput.numDebateRounds,
+        moderatorVoice: validatedInput.moderatorVoice,
         timestamp,
       });
-      await kv.set(["debates", input.uuid, timestamp], compressJson(data));
+      await kv.set(["debates", validatedInput.uuid, timestamp], compressJson(data));
     } catch (error) {
       console.error("Error logging debate details:", error);
     }
 
     try {
-      const stream = await conductDebateStream(input);
+      const stream = await conductDebateStream(validatedInput);
       if (!(stream instanceof ReadableStream)) {
         throw new Error("Invalid stream returned from conductDebateStream");
       }
