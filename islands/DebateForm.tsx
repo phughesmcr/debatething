@@ -56,7 +56,7 @@ export default function DebateForm() {
         setModeratorVoice={setModeratorVoice}
       />
 
-      {isDebateFinished && (
+      {debate.length > 0 && isDebateFinished && (
         <AudioControls
           isPlaying={isPlaying}
           isLoading={isAudioLoading}

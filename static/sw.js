@@ -65,7 +65,7 @@ self.addEventListener("fetch", (event) => {
 
             return networkResponse;
           })
-          .catch((error) => {
+          .catch((_error) => {
             // Optionally, you can return a custom offline page or a fallback response here
             return new Response("Network error occurred. Please try again later.", {
               status: 503,
