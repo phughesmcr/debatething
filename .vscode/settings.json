@@ -16,5 +16,12 @@
   },
   "css.customData": [
     ".vscode/tailwind.json"
+  ],
+  "cSpell.words": [
+    "debatething",
+    "mstile",
+    "nosniff",
+    "preact",
+    "voicesynth"
   ]
 }
