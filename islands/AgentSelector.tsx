@@ -72,6 +72,7 @@ export default function AgentSelector(props: AgentSelectorProps) {
                     Personality:
                   </label>
                   <CustomPersonalityInput
+                    id={`agent-personality-${index}`}
                     value={agent.personality}
                     onChange={(value) => handlePersonalityChange(value, index)}
                   />

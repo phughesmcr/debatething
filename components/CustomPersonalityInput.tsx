@@ -4,12 +4,13 @@ import { cleanContent, sanitizeInput } from "lib/utils.ts";
 import { useEffect, useState } from "preact/hooks";
 
 interface CustomPersonalityInputProps {
+  id: string;
   value: string;
   onChange: (value: string) => void;
 }
 
 export default function CustomPersonalityInput(props: CustomPersonalityInputProps) {
-  const { value, onChange } = props;
+  const { id, value, onChange } = props;
   const [selectedOption, setSelectedOption] = useState<string>("custom");
   const [customInput, setCustomInput] = useState<string>(value);
 
@@ -29,6 +30,8 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
     const selected = (e.target as HTMLSelectElement).value;
     setSelectedOption(selected);
     if (selected === "custom") {
+      setSelectedOption("custom");
+      setCustomInput(value);
       onChange(customInput);
     } else {
       const personality = personalities.find((p) => p.name === selected);
@@ -50,6 +53,7 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
   return (
     <div class="space-y-2">
       <select
+        id={id}
         value={selectedOption}
         onChange={handleSelectChange}
         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -59,6 +63,7 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
       </select>
       {selectedOption === "custom" && (
         <textarea
+          name={id}
           value={customInput}
           onChange={handleCustomInputChange}
           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
