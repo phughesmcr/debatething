@@ -23,6 +23,7 @@ export default function App({ Component }: PageProps) {
           name="viewport"
           content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
+        <meta name="description" content="Generate interesting debates on any topic using AI and listen to them for free!" />
         <title>DebateThing.com</title>
         <link
           rel="icon"
