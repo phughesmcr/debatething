@@ -21,8 +21,7 @@ export const handler: Handlers = {
 
     const result = DebateRequestSchema.safeParse(input);
     if (!result.success) {
-      console.error("Validation errors:", result.error.errors);
-      return new Response(JSON.stringify({ errors: result.error.errors.map(e => e.message) }), {
+      return new Response(JSON.stringify({ errors: result.error.errors }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -42,8 +41,8 @@ export const handler: Handlers = {
         timestamp,
       });
       await kv.set(["debates", validatedInput.uuid, timestamp], compressJson(data));
-    } catch (error) {
-      console.error("Error logging debate details:", error);
+    } catch (_error) {
+      // Ignore the error and continue
     }
 
     try {
@@ -59,8 +58,7 @@ export const handler: Handlers = {
           "X-Content-Type-Options": "nosniff",
         },
       });
-    } catch (error) {
-      console.error("Error conducting debate:", error);
+    } catch (_error) {
       return new Response(
         JSON.stringify({ error: "Failed to conduct debate" }),
         {

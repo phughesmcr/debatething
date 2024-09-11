@@ -1,4 +1,4 @@
-const CACHE_NAME = "debatething-cache-v7";
+const CACHE_NAME = "debatething-cache-v8";
 const urlsToCache = [
   "/",
   "/styles.css",
@@ -26,8 +26,7 @@ self.addEventListener("install", (event) => {
                 }
                 return cache.put(url, response);
               })
-              .catch((error) => {
-                console.error("Caching failed for", url, error);
+              .catch((_error) => {
                 return Promise.resolve();
               });
           }),
@@ -55,7 +54,6 @@ self.addEventListener("fetch", (event) => {
         return fetch(event.request)
           .then((networkResponse) => {
             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
-              console.error(`Failed to fetch: ${event.request.url}`, networkResponse);
               return networkResponse;
             }
 
@@ -68,7 +66,6 @@ self.addEventListener("fetch", (event) => {
             return networkResponse;
           })
           .catch((error) => {
-            console.error(`Network error for: ${event.request.url}`, error);
             // Optionally, you can return a custom offline page or a fallback response here
             return new Response("Network error occurred. Please try again later.", {
               status: 503,

@@ -63,7 +63,6 @@ export const handleAudioSynthesis = async (
   } catch (error) {
     setIsLoading(false);
     setIsSynthesizingAudio(false);
-    console.error("Error in handleAudioSynthesis:", error);
     throw error;
   }
 };
@@ -115,8 +114,8 @@ export const processQueue = async (audioState: ReturnType<typeof useAudioState>)
       setCurrentAudio(null);
       setCurrentPlaybackPosition(0);
       setCurrentQueueIndex(i + 1);
-    } catch (error) {
-      console.error("Error processing audio queue:", error);
+    } catch (_error) {
+      // Ignore the error and continue
     }
   }
 
@@ -130,7 +129,7 @@ const playAudio = (audio: HTMLAudioElement, audioState: ReturnType<typeof useAud
   return new Promise((resolve) => {
     audio.addEventListener("ended", () => resolve(), { once: true });
     audio.currentTime = audioState.currentPlaybackPosition;
-    audio.play().catch(console.error);
+    audio.play().catch(() => {});
   });
 };
 
@@ -139,7 +138,7 @@ export const pauseResumeAudio = (audioState: ReturnType<typeof useAudioState>) =
 
   if (currentAudio) {
     if (isPaused) {
-      currentAudio.play().catch(console.error);
+      currentAudio.play().catch(() => {});
     } else {
       currentAudio.pause();
       setCurrentPlaybackPosition(currentAudio.currentTime);
@@ -178,8 +177,6 @@ export const playFullDebate = (
       const voice: VoiceType = agentDetails.find((agent) => agent.name === message.role)?.voice || "nova";
       if (isValidVoice(voice)) {
         queue.push({ content: message.content, voice });
-      } else {
-        console.error(`Invalid voice type: ${voice}`);
       }
     }
     return queue;

@@ -1,4 +1,4 @@
-import { type VoiceType } from "routes/api/voicesynth.tsx";
+import { voiceTypes } from "routes/api/voicesynth.tsx";
 import { z } from "zod";
 
 export const MIN_AGENTS = 2;
@@ -10,11 +10,14 @@ export const MAX_NAME_LENGTH = 32;
 export const MAX_POSITION_LENGTH = 256;
 export const MAX_PERSONALITY_LENGTH = 256;
 
+// Define the VoiceType enum
+const VoiceTypeEnum = z.enum([...voiceTypes]);
+
 export const AgentDetailsSchema = z.object({
   name: z.string().min(1).max(MAX_NAME_LENGTH),
   personality: z.string().min(1).max(MAX_PERSONALITY_LENGTH),
   stance: z.enum(["for", "against", "undecided", "moderator"]),
-  voice: z.enum([z.custom<VoiceType>()]),
+  voice: VoiceTypeEnum,
 });
 
 export const DebateRequestSchema = z.object({
@@ -24,7 +27,7 @@ export const DebateRequestSchema = z.object({
   agentDetails: z.array(AgentDetailsSchema),
   uuid: z.string().uuid(),
   numDebateRounds: z.number().int().min(MIN_DEBATE_ROUNDS).max(MAX_DEBATE_ROUNDS),
-  moderatorVoice: z.union([z.enum(["none"]), z.custom<VoiceType>()]),
+  moderatorVoice: z.union([z.literal("none"), VoiceTypeEnum]),
 }).refine(data => data.agentDetails.length === data.numAgents, {
   message: "Number of agent details must match numAgents",
   path: ["agentDetails"],

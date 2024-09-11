@@ -50,7 +50,6 @@ export function useDebateState() {
 
   const setNumAgents = useCallback((count: number) => {
     if (isNaN(count)) {
-      console.error("Invalid number of agents:", count);
       return;
     }
     const clampedCount = clamp(count, MIN_AGENTS, MAX_AGENTS);
@@ -82,8 +81,6 @@ export function useDebateState() {
       uuid: userUUID,
     };
 
-    console.log("Request payload:", requestPayload);
-
     const { errors, valid } = validateDebateInput(requestPayload);
 
     if (!valid) {
@@ -96,6 +93,8 @@ export function useDebateState() {
     setDebate([]);
 
     abortControllerRef.current = new AbortController();
+
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
     try {
       // First, make a GET request to obtain the CSRF token
@@ -121,23 +120,17 @@ export function useDebateState() {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken,
         },
-        body: JSON.stringify({
-          position: sanitizedPosition,
-          context: sanitizedContext,
-          numAgents,
-          numDebateRounds,
-          agentDetails,
-          moderatorVoice,
-          uuid: userUUID,
-        }),
+        body: JSON.stringify(requestPayload),
         signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
       }
 
-      const reader = response.body?.getReader();
+      reader = response.body?.getReader();
+
       if (!reader) {
         throw new Error("Failed to get response reader");
       }
@@ -147,40 +140,47 @@ export function useDebateState() {
       let currentMessage: DebateMessage | null = null;
 
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        try {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const jsonData = line.slice(6); // Remove 'data: ' prefix
-            if (jsonData.trim() === "[DONE]") {
-              setIsDebateFinished(true);
-            } else {
-              try {
-                const message = JSON.parse(jsonData) as DebateMessage;
-                setDebate((prevDebate) => {
-                  const lastMessage = prevDebate[prevDebate.length - 1];
-                  if (lastMessage && lastMessage.role === message.role) {
-                    // Update the content of the last message
-                    return [
-                      ...prevDebate.slice(0, -1),
-                      { ...lastMessage, content: lastMessage.content + message.content },
-                    ];
-                  } else {
-                    // Add a new message
-                    return [...prevDebate, message];
-                  }
-                });
-                currentMessage = message;
-              } catch (error) {
-                console.error("Error parsing JSON:", error);
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const jsonData = line.slice(6); // Remove 'data: ' prefix
+              if (jsonData.trim() === "[DONE]") {
+                setIsDebateFinished(true);
+              } else {
+                try {
+                  const message = JSON.parse(jsonData) as DebateMessage;
+                  setDebate((prevDebate) => {
+                    const lastMessage = prevDebate[prevDebate.length - 1];
+                    if (lastMessage && lastMessage.role === message.role) {
+                      // Update the content of the last message
+                      return [
+                        ...prevDebate.slice(0, -1),
+                        { ...lastMessage, content: lastMessage.content + message.content },
+                      ];
+                    } else {
+                      // Add a new message
+                      return [...prevDebate, message];
+                    }
+                  });
+                  currentMessage = message;
+                } catch (_error) {
+                  // Ignore the error and continue
+                }
               }
             }
           }
+        } catch (readError) {
+          if (readError.name === "AbortError") {
+            break;
+          }
+          throw readError;
         }
       }
 
@@ -195,8 +195,8 @@ export function useDebateState() {
                 currentMessage.content += message.content;
                 setDebate((prevDebate) => [...prevDebate, currentMessage!]);
               }
-            } catch (error) {
-              console.error("Error parsing JSON:", error);
+            } catch (_error) {
+              // Ignore the error and continue
             }
           }
         }
@@ -205,10 +205,11 @@ export function useDebateState() {
       setIsDebateFinished(true);
     } catch (error) {
       if (error.name === "AbortError") {
-        // Debate cancelled
+        setErrors(["Debate was cancelled."]);
+      } else if (error instanceof TypeError) {
+        setErrors(["A network error occurred. Please check your connection and try again."]);
       } else {
-        console.error("Error in debate:", error);
-        setErrors(["An error occurred while debating. Please try again."]);
+        setErrors(["An unexpected error occurred while debating. Please try again."]);
       }
     } finally {
       setLoading(false);

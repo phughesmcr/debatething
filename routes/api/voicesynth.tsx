@@ -121,8 +121,6 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         },
       );
     } catch (error) {
-      console.error("Error in voice synthesis:", error);
-
       let errorMessage = "An error occurred during voice synthesis";
       if (error instanceof Error) {
         errorMessage = error.message;

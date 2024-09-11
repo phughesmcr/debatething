@@ -8,6 +8,8 @@ export const handler: Handlers = {
       status: 204,
       headers: {
         "X-CSRF-Token": token,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "X-CSRF-Token",
       },
     });
   },

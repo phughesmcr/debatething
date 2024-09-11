@@ -127,7 +127,6 @@ export function conductDebateStream(request: DebateRequest) {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       } catch (error) {
         if (error.message !== "Debate cancelled") {
-          console.error("Error in conductDebateStream:", error);
           controller.enqueue(
             encoder.encode(
               `data: ${
