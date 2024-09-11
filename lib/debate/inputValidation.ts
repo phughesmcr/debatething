@@ -6,8 +6,8 @@ export const MAX_DEBATE_CONTEXT_LENGTH = 1028;
 export const MIN_DEBATE_ROUNDS = 1;
 export const MAX_DEBATE_ROUNDS = 3;
 export const MAX_NAME_LENGTH = 32;
-export const MAX_POSITION_LENGTH = 128;
-export const MAX_PERSONALITY_LENGTH = 264;
+export const MAX_POSITION_LENGTH = 256;
+export const MAX_PERSONALITY_LENGTH = 256;
 
 export interface InputValidationResponse {
   valid: boolean;
