@@ -1,5 +1,6 @@
+import OutwardLink from "components/OutwardLink.tsx";
+import DarkModeToggle from "islands/DarkModeToggle.tsx";
 import DebateForm from "islands/DebateForm.tsx";
-import DarkModeToggle from "../islands/DarkModeToggle.tsx";
 
 export default function Home() {
   return (
@@ -19,50 +20,25 @@ export default function Home() {
       </p>
       <p class="text-sm text-gray-500 mb-3">
         DebateThing is{" "}
-        <a
-          href="https://github.com/phughesmcr/debatething"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-blue-500 hover:underline cursor-pointer"
-        >
+        <OutwardLink href="https://github.com/phughesmcr/debatething">
           Open Source,{" "}
-        </a>
+        </OutwardLink>
         made with{" "}
-        <a
-          href="http://fresh.deno.dev"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-blue-500 hover:underline cursor-pointer"
-        >
+        <OutwardLink href="http://fresh.deno.dev">
           Deno Fresh
-        </a>
+        </OutwardLink>
         , and hosted on{" "}
-        <a
-          href="https://www.deno.com/deploy"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-blue-500 hover:underline cursor-pointer"
-        >
+        <OutwardLink href="https://www.deno.com/deploy">
           Deno Deploy
-        </a>
+        </OutwardLink>
         . It is made available under the{" "}
-        <a
-          href="https://opensource.org/license/mit"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-blue-500 hover:underline cursor-pointer"
-        >
+        <OutwardLink href="https://opensource.org/license/mit">
           MIT License
-        </a>
+        </OutwardLink>
         .{" "}
-        <a
-          href="http://phugh.es"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-blue-500 hover:underline cursor-pointer"
-        >
+        <OutwardLink href="http://phugh.es">
           Hire me
-        </a>
+        </OutwardLink>
         .
       </p>
       <DebateForm />

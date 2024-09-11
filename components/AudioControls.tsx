@@ -40,6 +40,8 @@ export default function AudioControls(props: AudioControlsProps) {
     <button
       onClick={handlePlayPause}
       disabled={buttonState === "loading"}
+      aria-label={getButtonText()}
+      aria-pressed={isPlaying}
       className={`w-full mt-2 px-4 py-2 rounded text-white font-bold ${
         buttonState === "pause"
           ? "bg-orange-400"

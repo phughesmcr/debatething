@@ -91,6 +91,8 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
               onChange={(e) => setPosition(cleanContent(sanitizeInput((e.target as HTMLInputElement).value)))}
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               required
+              aria-label="Debate Topic"
+              aria-invalid={errors.includes('position') ? 'true' : 'false'}
             />
           </div>
 
@@ -182,8 +184,10 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
 
       {errors.length > 0 && (
         <div
+          id="error-messages"
           class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded-md"
           role="alert"
+          aria-live="assertive"
         >
           <ul class="list-disc list-inside">
             {errors.map((error, index) => <li key={index}>{error}</li>)}
