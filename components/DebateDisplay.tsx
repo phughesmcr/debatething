@@ -21,7 +21,7 @@ export default function DebateDisplay(props: DebateDisplayProps) {
   const { debate, agentDetails, isDebateFinished } = props;
 
   return (
-    <div class="mt-8" aria-label="Debate results">
+    <div class="mt-8 DebateDisplay" aria-label="Debate results">
       <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Debate Results</h2>
       <div class="space-y-6">
         {debate.map((message, index) => {

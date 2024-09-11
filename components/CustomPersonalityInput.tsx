@@ -51,7 +51,7 @@ export default function CustomPersonalityInput(props: CustomPersonalityInputProp
   };
 
   return (
-    <div class="space-y-2">
+    <div class="space-y-2 CustomPersonalityInput">
       <select
         id={id}
         value={selectedOption}

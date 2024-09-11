@@ -20,6 +20,7 @@ export default function DarkModeToggle() {
     <button
       onClick={toggleDarkMode}
       class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+      aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
     >
       {!isDarkMode ? "🌙" : "☀️"}
       <span class="sr-only">Toggle Dark Mode</span>

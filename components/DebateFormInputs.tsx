@@ -73,7 +73,7 @@ export default function DebateFormInputs(props: DebateFormInputsProps) {
   return (
     <form
       onSubmit={onSubmitHandler}
-      class="space-y-6"
+      class="space-y-6 DebateFormInputs"
     >
       {!isDebating && (
         <>

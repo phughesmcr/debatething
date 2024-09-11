@@ -13,3 +13,140 @@ body {
     @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+
+  body {
+    font-family: 'Century Gothic', 'Calibri', sans-serif;
+    font-size: 9pt;
+    line-height: 1.2;
+    background: none;
+    color: #000;
+    -webkit-print-color-adjust: economy;
+    print-color-adjust: economy;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    font-weight: normal;
+  }
+
+  h1 { font-size: 16pt; }
+  h2 { font-size: 14pt; }
+  h3 { font-size: 12pt; }
+
+  p, ul, ol, dl {
+    page-break-inside: avoid;
+  }
+
+  ul, ol {
+    padding-left: 1em;
+  }
+
+  li::marker {
+    content: "- ";
+  }
+
+  img {
+    max-width: 100% !important;
+    filter: grayscale(100%) contrast(50%) brightness(150%);
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+    border-bottom: 1px dotted #000;
+  }
+
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 7pt;
+  }
+
+  button, .DarkModeToggle, .AudioControls, .DebateFormInputs, .AgentSelector, .CustomPersonalityInput {
+    display: none !important;
+  }
+
+  .DebateDisplay {
+    border: none;
+    box-shadow: none;
+    margin-top: 0.5em;
+  }
+
+  .DebateDisplay article {
+    background: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0.3em 0 !important;
+    margin-bottom: 0.3em !important;
+    page-break-inside: avoid;
+  }
+
+  .DebateDisplay article.border-l-4 {
+    border-left: 1px dotted #000 !important;
+    padding-left: 0.2em !important;
+  }
+
+  .DebateDisplay h2 {
+    font-size: 12pt;
+    margin-bottom: 0.2em;
+  }
+
+  .DebateDisplay .space-y-6 {
+    margin-top: 0.3em;
+  }
+
+  .DebateDisplay h3 {
+    font-size: 10pt;
+    margin-bottom: 0.1em;
+  }
+
+  .DebateDisplay h3 span {
+    font-weight: normal;
+  }
+
+  .DebateDisplay p {
+    font-size: 9pt;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .DebateDisplay .text-green-600,
+  .DebateDisplay .text-green-400 {
+    font-weight: normal;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    margin-top: 0.2em;
+  }
+
+  /* Override Tailwind text colors for print */
+  .text-green-700, .text-green-300,
+  .text-red-700, .text-red-300,
+  .text-yellow-700, .text-yellow-300,
+  .text-blue-700, .text-blue-300,
+  .text-gray-900, .text-gray-100,
+  .text-gray-800, .text-gray-200 {
+    color: #000 !important;
+  }
+
+  .OutwardLink::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+  }
+
+  /* Use symbols for common words */
+  .common-word-and::before { content: "&"; }
+  .common-word-the::before { content: "þ"; }
+  .common-word-of::before { content: "o/"; }
+
+  /* Reduce ink for large dark areas */
+  .bg-dark {
+    background: repeating-linear-gradient(45deg, #000, #000 3px, #fff 3px, #fff 6px) !important;
+  }
+}
