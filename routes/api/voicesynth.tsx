@@ -96,16 +96,13 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         model: DEFAULT_VOICE_MODEL,
         voice: voice.toLowerCase().trim() as VoiceType,
         input: props.message,
+        response_format: "opus",
       });
 
       if (!audioResponse) {
         throw new Error("No response from speech service");
       }
 
-      const contentType = audioResponse.headers.get("content-type");
-      const audioFormat = contentType ? contentType.split("/")[1] : "mp3";
-
-      // Return the audio data as an ArrayBuffer instead of base64
       const audioBuffer = await audioResponse.arrayBuffer();
 
       return new Response(
@@ -113,8 +110,8 @@ export const handler: Handlers<VoiceSynthRequest | null, unknown> = {
         {
           status: 200,
           headers: {
-            "Content-Type": `audio/${audioFormat}`,
-            "Content-Disposition": "attachment; filename=speech.mp3",
+            "Content-Type": "audio/opus",
+            "Content-Disposition": `attachment; filename=speech.opus`,
             "Cache-Control": "no-cache; no-store;",
             "X-Content-Type-Options": "nosniff",
           },
