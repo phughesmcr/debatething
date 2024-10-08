@@ -45,7 +45,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
-  "nodeModulesDir": "auto",
+  "nodeModulesDir": true,
   "unstable": ["kv"],
   "fmt": {
     "lineWidth": 120
